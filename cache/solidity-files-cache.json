@@ -1,0 +1,41 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/therock/Documents/2. RnD/0._2026/Blockchain/JustBlockChainManual/secure-doc-transfer/contracts/SecureDocumentTransfer.sol": {
+      "lastModificationDate": 1783386959390,
+      "contentHash": "40def2ee97ae3f57f441b2b889bef559",
+      "sourceName": "contracts/SecureDocumentTransfer.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "SecureDocumentTransfer"
+      ]
+    }
+  }
+}

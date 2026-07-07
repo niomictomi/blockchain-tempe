@@ -1,0 +1,15 @@
+{
+  "name": "secure-doc-transfer",
+  "version": "1.0.0",
+  "description": "Simulasi transfer dokumen aman dengan Hardhat dan Ganache",
+  "main": "index.js",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "deploy:ganache": "npx hardhat run scripts/deploy.js --network ganache"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.0"
+  }
+}

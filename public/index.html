@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Secure Document Transfer</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 30px auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .section {
+        background: #f4f4f9;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+      }
+      input,
+      button {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0 15px 0;
+        box-sizing: border-box;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      #walletAddress {
+        font-weight: bold;
+        color: green;
+      }
+      .status {
+        font-style: italic;
+        color: #555;
+      }
+    </style>
+    <!-- Menggunakan Ethers.js v6 via Lokal -->
+    <script src="./ethers.umd.min.js"></script>
+  </head>
+  <body>
+    <h2>Simulasi Transfer Dokumen Aman via Blockchain</h2>
+
+    <!-- 1. CONNECT WALLET -->
+    <div class="section">
+      <h3>1. Koneksi Dompet</h3>
+      <button id="connectBtn" onclick="connectWallet()">
+        Hubungkan MetaMask
+      </button>
+      <p>Alamat Akun: <span id="walletAddress">Belum Terhubung</span></p>
+    </div>
+
+    <!-- 2. REGISTER DOCUMENT -->
+    <div class="section">
+      <h3>2. Daftarkan Dokumen Baru</h3>
+      <label>Pilih File Asli (PDF/Gambar/Dokumen):</label>
+      <input type="file" id="fileInput" onchange="generateHashFromFile()" />
+
+      <label>Nama Dokumen (Otomatis):</label>
+      <input
+        type="text"
+        id="docName"
+        placeholder="Nama file akan terisi otomatis"
+        readonly
+      />
+
+      <label>Hash Dokumen SHA-256 (Otomatis):</label>
+      <input
+        type="text"
+        id="docHash"
+        placeholder="Hash file akan terisi otomatis"
+        readonly
+      />
+
+      <button onclick="registerDocument()">Daftarkan Dokumen</button>
+      <p id="regStatus" class="status"></p>
+    </div>
+
+    <!-- 3. VERIFY / CHECK DOCUMENT -->
+    <div class="section">
+      <h3>3. Cek Kepemilikan Dokumen</h3>
+      <label>Masukkan Hash Dokumen:</label>
+      <input
+        type="text"
+        id="searchHash"
+        placeholder="Masukkan hash untuk verifikasi"
+      />
+      <button onclick="checkDocument()">Cek Detail</button>
+      <p id="searchResult" class="status"></p>
+    </div>
+
+    <!-- 4. TRANSFER OWNERSHIP -->
+    <div class="section">
+      <h3>4. Transfer Kepemilikan</h3>
+      <label>Hash Dokumen yang Ingin Ditransfer:</label>
+      <input
+        type="text"
+        id="transferHash"
+        placeholder="Masukkan hash dokumen"
+      />
+      <label>Alamat MetaMask Penerima (Bob):</label>
+      <input type="text" id="receiverAddress" placeholder="0x..." />
+      <button onclick="transferDocument()">Kirim Kepemilikan</button>
+      <p id="transferStatus" class="status"></p>
+    </div>
+
+    <script>
+      // Alamat Smart Contract aktif Anda
+      const CONTRACT_ADDRESS = "0x0Bb86136e2c051f015D7E316819d0F06123587F4";
+
+      // ABI Lengkap Smart Contract
+      const CONTRACT_ABI = [
+        "function registerDocument(string memory _docHash, string memory _docName) public",
+        "function transferDocument(string memory _docHash, address _newOwner) public",
+        "function getDocument(string memory _docHash) public view returns (string memory docName, address owner, uint256 timestamp)",
+      ];
+
+      let provider;
+      let signer;
+      let contract;
+
+      async function connectWallet() {
+        if (!window.ethereum) {
+          alert("MetaMask tidak ditemukan! Silakan install ekstensi MetaMask.");
+          return;
+        }
+        try {
+          provider = new ethers.BrowserProvider(window.ethereum);
+          const accounts = await provider.send("eth_requestAccounts", []);
+          const activeAddress = accounts[0];
+
+          signer = await provider.getSigner(activeAddress);
+          document.getElementById("walletAddress").innerText = activeAddress;
+          document.getElementById("connectBtn").innerText = "Terhubung";
+
+          contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+        } catch (error) {
+          console.error(error);
+          alert("Gagal menghubungkan wallet.");
+        }
+      }
+
+      async function generateHashFromFile() {
+        const fileInput = document.getElementById("fileInput");
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        document.getElementById("docName").value = file.name;
+
+        const reader = new FileReader();
+        reader.onload = async function (e) {
+          const arrayBuffer = e.target.result;
+
+          // Membuat real SHA-256 hash dari data biner berkas
+          const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+          // Menaruh string hash ke form input
+          document.getElementById("docHash").value = "0x" + hashHex;
+        };
+        reader.readAsArrayBuffer(file);
+      }
+
+      async function registerDocument() {
+        if (!contract) return alert("Hubungkan wallet terlebih dahulu!");
+        const name = document.getElementById("docName").value;
+        const hash = document.getElementById("docHash").value;
+        const statusNode = document.getElementById("regStatus");
+
+        if (!hash) return alert("Pilih file terlebih dahulu agar hash terbentuk!");
+
+        try {
+          statusNode.innerText = "Memproses transaksi di MetaMask...";
+          const tx = await contract.registerDocument(hash, name);
+          statusNode.innerText = "Menunggu konfirmasi block...";
+          await tx.wait();
+          statusNode.innerText = "Sukses! Dokumen berhasil dicatat di Blockchain.";
+          
+          // Mengisi kolom otomatis agar meminimalkan human error typo data hash
+          document.getElementById("searchHash").value = hash;
+          document.getElementById("transferHash").value = hash;
+        } catch (error) {
+          console.error(error);
+          statusNode.innerText = "Error: " + (error.reason || error.message);
+        }
+      }
+
+      async function checkDocument() {
+        if (!contract) return alert("Hubungkan wallet terlebih dahulu!");
+        const hash = document.getElementById("searchHash").value.trim();
+        const resultNode = document.getElementById("searchResult");
+
+        if (!hash) return alert("Masukkan hash yang ingin diperiksa!");
+
+        try {
+          resultNode.innerText = "Mencari data di blockchain...";
+          const [docName, owner, timestamp] = await contract.getDocument(hash);
+          const date = new Date(Number(timestamp) * 1000).toLocaleString();
+
+          resultNode.innerHTML = `
+            <strong>Nama Dokumen:</strong> ${docName}<br>
+            <strong>Pemilik Valid:</strong> ${owner}<br>
+            <strong>Waktu Registrasi:</strong> ${date}
+          `;
+        } catch (error) {
+          console.error(error);
+          resultNode.innerText = "Error: Dokumen tidak ditemukan atau hash salah.";
+        }
+      }
+
+      async function transferDocument() {
+        if (!contract) return alert("Hubungkan wallet terlebih dahulu!");
+        const hash = document.getElementById("transferHash").value.trim();
+        const receiver = document.getElementById("receiverAddress").value.trim();
+        const statusNode = document.getElementById("transferStatus");
+
+        if (!hash || !receiver) return alert("Lengkapi data hash dokumen dan alamat penerima!");
+
+        try {
+          statusNode.innerText = "Memproses transfer di MetaMask...";
+          const tx = await contract.transferDocument(hash, receiver);
+          statusNode.innerText = "Menunggu konfirmasi block...";
+          await tx.wait();
+          statusNode.innerText = `Sukses! Kepemilikan berhasil dialihkan ke ${receiver}`;
+        } catch (error) {
+          console.error(error);
+          statusNode.innerText = "Gagal transfer: " + (error.reason || error.message);
+        }
+      }
+
+      // Otomatis refresh jika pengguna menukar wallet di dalam ekstensi MetaMask
+      if (window.ethereum) {
+        window.ethereum.on("accountsChanged", function (accounts) {
+          window.location.reload();
+        });
+      }
+    </script>
+  </body>
+</html>

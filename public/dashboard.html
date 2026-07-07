@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="'unsafe-inline' 'unsafe-eval'; connect-src * blob: data:; img-src 'self' data:;">
+    <meta http-equiv="Content-Security-Policy" content="'unsafe-eval'; connect-src * blob: data:; img-src 'self' data:;">
     <title>🔗 Blockchain Document Transfer — Full Simulation</title>
     <style>
         *{box-sizing:border-box;margin:0;padding:0;}
@@ -15,14 +15,10 @@
         .main{display:flex;flex:1;}
         .control{width:42%;background:#1a1a28;border-right:1px solid #2a2a40;padding:18px;overflow-y:auto;max-height:calc(100vh - 64px);}
         .visual{width:58%;padding:18px;overflow-y:auto;max-height:calc(100vh - 64px);display:flex;flex-direction:column;gap:14px;}
-
-        /* MODE TOGGLE */
         .mode-toggle{display:flex;background:#0d0d18;border-radius:8px;padding:4px;gap:4px;margin-bottom:14px;}
         .mode-toggle button{flex:1;padding:8px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:#555;transition:.2s;}
         .mode-toggle button.active{background:#1e3a5f;color:#00ffcc;box-shadow:0 0 8px #00ffcc33;}
         .mode-toggle button:hover:not(.active){color:#aaa;}
-
-        /* STEP CARDS */
         .step-card{background:#22223a;border-radius:10px;border-left:4px solid #333355;padding:14px;margin-bottom:12px;transition:.3s;}
         .step-card.active{border-left-color:#00ffcc;background:#1e2a38;}
         .step-card.done{border-left-color:#28a745;background:#1a2a1e;opacity:.82;}
@@ -32,8 +28,6 @@
         .sbadge.done{background:#28a74533;color:#28a745;}
         .sbadge.active{background:#00ffcc22;color:#00ffcc;}
         .sbadge.sim{background:#7b2ff733;color:#b57bff;}
-
-        /* SIM ACCOUNT BOX */
         .sim-acct{background:#1a1530;border:1px solid #7b2ff744;border-radius:8px;padding:12px;margin-bottom:10px;}
         .sim-acct-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
         .sim-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
@@ -43,12 +37,10 @@
         .sim-acct-info small{font-size:10px;color:#555;}
         .sim-bal{font-size:11px;color:#ffc107;font-weight:bold;margin-left:auto;}
         .addr-input{font-family:monospace;font-size:11px;}
-
         label{font-size:11px;color:#8888aa;margin-top:6px;display:block;}
         input,select{width:100%;padding:8px 11px;margin:4px 0;background:#2a2a40;border:1px solid #3a3a55;color:#e0e0e0;border-radius:6px;font-size:12px;}
         input[readonly]{background:#1e1e30;color:#777;}
         input:focus,select:focus{outline:none;border-color:#00ffcc66;}
-
         button{width:100%;padding:9px 14px;margin:7px 0 3px;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;}
         .btn-b{background:linear-gradient(135deg,#0077ff,#0055cc);color:#fff;}
         .btn-b:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px);}
@@ -61,22 +53,17 @@
         .btn-sim{background:linear-gradient(135deg,#7b2ff7,#3a00aa);color:#fff;}
         .btn-sim:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px);}
         button:disabled{background:#2a2a40!important;color:#444!important;cursor:not-allowed;transform:none!important;filter:none!important;}
-
         .status{font-size:12px;margin-top:5px;padding:5px 9px;border-radius:4px;background:#1a1a2e;color:#ffc107;min-height:26px;}
         .status.ok{color:#28a745;background:#1a2a1e;}
         .status.err{color:#dc3545;background:#2a1a1e;}
-
         .progress-bar{background:#2a2a40;border-radius:10px;height:5px;margin:8px 0;}
         .progress-fill{background:linear-gradient(90deg,#00ffcc,#007bff);height:100%;border-radius:10px;transition:.6s;width:0%;}
-
         .file-drop{border:2px dashed #3a3a55;border-radius:8px;padding:18px;text-align:center;position:relative;transition:.2s;cursor:pointer;display:block;}
         .file-drop:hover{border-color:#00ffcc66;}
         .file-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
         .file-drop-lbl{color:#555;font-size:13px;pointer-events:none;}
-
         .vcard{background:#1e1e2e;border-radius:10px;padding:14px;border:1px solid #2a2a40;}
-        .vcard h4{font-size:.8rem;color:#00ffcc;margin-bottom:11px;letter-spacing:.8px;text-transform:uppercase;}
-
+        .vcard h4{font-size:.8rem;color:#00ffcc;margin-bottom:11px;letter-spacing:.8px;text-transform:uppercase;display:flex;align-items:center;}
         .node-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
         .node{background:#2a2a3e;border:2px solid #3a3a55;border-radius:8px;padding:9px 5px;text-align:center;font-size:11px;transition:.4s;}
         .node .icon{font-size:1.5rem;display:block;margin-bottom:3px;}
@@ -89,12 +76,15 @@
         .node.sender{border-color:#007bff;background:#0a1022;}
         .node.sender small{color:#007bff;}
         @keyframes pulse{from{opacity:.55}to{opacity:1}}
-
-        .ledger{background:#080810;border-radius:6px;font-family:'Courier New',monospace;font-size:11px;max-height:220px;overflow-y:auto;padding:10px;line-height:1.7;}
-
+        .ledger{background:#080810;border-radius:6px;font-family:'Courier New',monospace;font-size:11px;max-height:240px;overflow-y:auto;padding:10px;line-height:1.7;}
+        .ledger-placeholder{color:#444;}
+        .ledger-expand-btn{margin-left:auto;background:#00ffcc18;border:1px solid #00ffcc44;color:#00ffcc;padding:2px 8px;border-radius:5px;font-size:10px;cursor:pointer;font-weight:600;width:auto;margin-top:0;}
+        .ledger-expand-btn:hover{background:#00ffcc33;}
         .chain-wrap{overflow-x:auto;padding:4px 0;}
         .chain{display:flex;align-items:center;gap:0;min-width:max-content;}
-        .block{background:#1a3a2a;border:1px solid #28a74555;border-radius:7px;min-width:110px;padding:9px;font-size:10px;text-align:center;}
+        .block{background:#1a3a2a;border:1px solid #28a74555;border-radius:7px;min-width:110px;padding:9px;font-size:10px;text-align:center;cursor:pointer;transition:.25s;position:relative;}
+        .block:hover{filter:brightness(1.35);transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,0,0,.6);}
+        .block:hover::after{content:"🔍";position:absolute;top:3px;right:5px;font-size:10px;opacity:.7;}
         .block.genesis{background:#2a2a1a;border-color:#ffc10755;}
         .block.deploy{background:#1a1a3a;border-color:#7b2ff755;}
         .block.register{background:#1a2a3a;border-color:#007bff55;}
@@ -102,19 +92,107 @@
         .block.verify{background:#1a2a1e;border-color:#28a74555;}
         .block b{font-size:11px;}
         .arrow{color:#444;font-size:20px;padding:0 3px;flex-shrink:0;}
-
         .ig{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
         .ii{background:#2a2a3e;border-radius:6px;padding:9px;}
         .ii .lbl{font-size:10px;color:#666;margin-bottom:3px;}
         .ii .val{font-family:monospace;font-size:11px;color:#00ffcc;word-break:break-all;}
-
-        /* SIM BADGE in header */
         .badge.sim-active{background:#7b2ff733;border-color:#7b2ff7;color:#b57bff;}
+
+        /* ── MODAL OVERLAY ── */
+        .modal-overlay{position:fixed;inset:0;background:#000000e0;z-index:2000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+        .modal-overlay.open{display:flex;}
+        .modal-box{background:#14141e;border:1px solid #00ffcc33;border-radius:14px;width:92%;max-width:920px;max-height:90vh;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+        .modal-hdr{padding:14px 20px 10px;border-bottom:1px solid #2a2a40;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+        .modal-hdr-title{font-size:.95rem;font-weight:700;color:#00ffcc;flex:1;}
+        .modal-close{background:#ffffff11;border:1px solid #ffffff22;color:#aaa;border-radius:6px;padding:4px 10px;font-size:14px;cursor:pointer;width:auto;margin:0;transition:.2s;}
+        .modal-close:hover{background:#ffffff22;color:#fff;}
+        .modal-body{overflow-y:auto;flex:1;}
+
+        /* ── MODAL TABS ── */
+        .modal-tabs{display:flex;background:#0e0e1a;border-bottom:1px solid #2a2a40;flex-shrink:0;}
+        .modal-tab{flex:1;padding:10px;border:none;background:transparent;color:#555;font-size:12px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;width:auto;margin:0;border-radius:0;}
+        .modal-tab.active{color:#00ffcc;border-bottom-color:#00ffcc;background:#00ffcc08;}
+        .modal-tab:hover:not(.active){color:#aaa;}
+        .tab-panel{display:none;padding:16px 20px;}
+        .tab-panel.active{display:block;}
+
+        /* ── LEDGER FULL ── */
+        .ledger-full{font-family:'Courier New',monospace;font-size:11.5px;line-height:1.8;background:#080810;border-radius:6px;padding:14px;min-height:200px;}
+
+        /* ── FLOW ANALYSIS ── */
+        .fa-section{margin-bottom:24px;}
+        .fa-section-title{font-size:.75rem;font-weight:700;color:#00ffcc;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e2a3a;padding-bottom:6px;margin-bottom:14px;}
+
+        /* Pipeline flow nodes */
+        .pipeline{display:flex;align-items:flex-start;flex-wrap:wrap;gap:0;overflow-x:auto;padding:8px 0 16px;}
+        .pipe-node{display:flex;flex-direction:column;align-items:center;min-width:90px;max-width:110px;}
+        .pipe-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;border:2px solid #333355;background:#1e1e30;transition:.3s;position:relative;}
+        .pipe-icon.done{border-color:#28a745;background:#1a2a1e;box-shadow:0 0 10px #28a74544;}
+        .pipe-icon.active{border-color:#00ffcc;background:#0a2020;box-shadow:0 0 10px #00ffcc44;animation:pulse .8s infinite alternate;}
+        .pipe-icon.pending{border-color:#333355;opacity:.4;}
+        .pipe-label{font-size:10px;text-align:center;margin-top:6px;color:#888;line-height:1.3;}
+        .pipe-label strong{display:block;color:#aaddff;font-size:11px;}
+        .pipe-connector{display:flex;align-items:center;padding-top:15px;flex-shrink:0;}
+        .pipe-connector span{color:#2a4a3a;font-size:22px;display:block;}
+        .pipe-connector.done span{color:#28a745;}
+
+        /* Hash chain visualization */
+        .hash-chain{display:flex;flex-direction:column;gap:8px;}
+        .hash-block{background:#0e0e18;border:1px solid #1e2a3a;border-radius:8px;padding:12px;position:relative;}
+        .hash-block::before{content:'';position:absolute;left:24px;top:-8px;height:8px;width:2px;background:#1e2a3a;}
+        .hash-block:first-child::before{display:none;}
+        .hash-block-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+        .hash-block-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;}
+        .hash-block-badge.genesis{background:#ffc10722;color:#ffc107;}
+        .hash-block-badge.deploy{background:#7b2ff722;color:#b57bff;}
+        .hash-block-badge.register{background:#007bff22;color:#66aaff;}
+        .hash-block-badge.transfer{background:#e07b0022;color:#ffaa44;}
+        .hash-block-badge.verify{background:#28a74522;color:#66dd88;}
+        .hash-formula{font-family:'Courier New',monospace;font-size:10.5px;line-height:1.8;color:#888;}
+        .hash-formula .kw{color:#ffc107;}
+        .hash-formula .val{color:#cc88ff;}
+        .hash-formula .res{color:#00ffcc;}
+        .hash-formula .addr{color:#aaddff;}
+        .hash-formula .ok{color:#28a745;}
+
+        /* Math table */
+        .math-table{width:100%;border-collapse:collapse;font-size:11.5px;}
+        .math-table th{background:#0e0e18;color:#666;font-weight:600;padding:7px 10px;text-align:left;border-bottom:1px solid #1e2a3a;}
+        .math-table td{padding:7px 10px;border-bottom:1px solid #0e0e18;font-family:monospace;}
+        .math-table tr:last-child td{border-bottom:none;font-weight:700;color:#00ffcc;background:#001010;}
+        .math-table .c1{color:#e0e0e0;}
+        .math-table .c2{color:#ffc107;text-align:right;}
+        .math-table .c3{color:#aaddff;text-align:right;}
+        .math-table .c4{color:#28a745;text-align:right;}
+
+        /* State transition */
+        .state-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#0e0e18;border-radius:6px;margin-bottom:6px;font-size:11.5px;}
+        .state-arrow{color:#00ffcc;font-size:16px;flex-shrink:0;}
+        .state-key{font-family:monospace;color:#888;font-size:10px;}
+        .state-val{margin-left:auto;font-family:monospace;font-size:10.5px;}
+
+        /* Block detail modal */
+        .block-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:14px;}
+        .block-badge.genesis{background:#ffc10722;color:#ffc107;border:1px solid #ffc10744;}
+        .block-badge.deploy{background:#7b2ff722;color:#b57bff;border:1px solid #7b2ff744;}
+        .block-badge.register{background:#007bff22;color:#66aaff;border:1px solid #007bff44;}
+        .block-badge.transfer{background:#e07b0022;color:#ffaa44;border:1px solid #e07b0044;}
+        .block-badge.verify{background:#28a74522;color:#66dd88;border:1px solid #28a74544;}
+        .blk-table{width:100%;border-collapse:collapse;font-size:12px;}
+        .blk-table tr{border-bottom:1px solid #1e1e30;}
+        .blk-table tr:last-child{border-bottom:none;}
+        .blk-table td{padding:8px 10px;vertical-align:top;}
+        .blk-table td:first-child{color:#666;width:36%;white-space:nowrap;}
+        .blk-table td:last-child{font-family:monospace;color:#e0e0e0;word-break:break-all;}
+        .blk-table td .hl{color:#00ffcc;}
+        .blk-table td .hl-addr{color:#aaddff;}
+        .blk-table td .hl-hash{color:#cc88ff;}
+        .blk-table td .hl-ok{color:#28a745;}
+        .blk-section{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1px;padding:10px 10px 4px;background:#0e0e18;}
     </style>
     <script src="./ethers.umd.min.js"></script>
 </head>
 <body>
-
 <header>
     <h1>🔗 Blockchain Document Transfer &mdash; Full Simulation</h1>
     <div class="badges">
@@ -124,35 +202,24 @@
         <span class="badge" id="contractBadge">📄 No Contract</span>
     </div>
 </header>
-
 <div class="main">
 <div class="control">
-
-    <!-- MODE TOGGLE -->
     <div class="mode-toggle">
         <button id="btnSimMode" class="active" onclick="setMode('sim')">🎮 Mode Simulasi (Dummy ETH)</button>
         <button id="btnRealMode" onclick="setMode('real')">🦊 Mode Nyata (MetaMask)</button>
     </div>
-
     <div>
         <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
         <div style="font-size:10px;color:#444;text-align:right;" id="progLabel">Step 0 / 6</div>
     </div>
-
-    <!-- STEP 0: CONNECT / SIM SETUP -->
     <div class="step-card active" id="c0">
-
-        <!-- SIMULATION PANEL -->
         <div id="panelSim">
             <div class="step-title">🎮 Step 1 &mdash; Setup Akun Simulasi <span class="sbadge sim" id="b0">SIM</span></div>
-            <p class="step-note">Gunakan alamat dummy di bawah atau ubah sesuai kebutuhan. Tidak memerlukan MetaMask.</p>
+            <p class="step-note">Gunakan alamat dummy di bawah atau ubah. Tidak memerlukan MetaMask.</p>
             <div class="sim-acct">
                 <div class="sim-acct-row">
                     <div class="sim-avatar alice">👩</div>
-                    <div class="sim-acct-info">
-                        <div style="font-weight:700;font-size:12px;color:#aaddff;">Alice (Pengirim)</div>
-                        <small>Pemilik awal dokumen</small>
-                    </div>
+                    <div class="sim-acct-info"><div style="font-weight:700;font-size:12px;color:#aaddff;">Alice (Pengirim)</div><small>Pemilik awal dokumen</small></div>
                     <span class="sim-bal">💰 100 ETH</span>
                 </div>
                 <label for="simSender">Alamat Alice:</label>
@@ -161,10 +228,7 @@
             <div class="sim-acct">
                 <div class="sim-acct-row">
                     <div class="sim-avatar bob">👨</div>
-                    <div class="sim-acct-info">
-                        <div style="font-weight:700;font-size:12px;color:#aaddff;">Bob (Penerima)</div>
-                        <small>Akan menerima hak dokumen</small>
-                    </div>
+                    <div class="sim-acct-info"><div style="font-weight:700;font-size:12px;color:#aaddff;">Bob (Penerima)</div><small>Akan menerima hak dokumen</small></div>
                     <span class="sim-bal">💰 100 ETH</span>
                 </div>
                 <label for="simReceiver">Alamat Bob:</label>
@@ -173,8 +237,6 @@
             <button class="btn-sim" id="btnStartSim" onclick="startSimulation()">🎮 Mulai Simulasi</button>
             <div class="status" id="s0">Konfigurasi akun lalu klik Mulai.</div>
         </div>
-
-        <!-- REAL / METAMASK PANEL -->
         <div id="panelReal" style="display:none;">
             <div class="step-title">👛 Step 1 &mdash; Hubungkan MetaMask <span class="sbadge active" id="b0r">AKTIF</span></div>
             <p class="step-note">Sambungkan wallet ke Ganache lokal (localhost:7545, Chain ID: 1337).</p>
@@ -182,8 +244,6 @@
             <div class="status" id="s0r">Belum terhubung.</div>
         </div>
     </div>
-
-    <!-- STEP 1: POLICY -->
     <div class="step-card" id="c1">
         <div class="step-title">⚙️ Step 2 &mdash; Setup Jaringan &amp; Kebijakan <span class="sbadge" id="b1">TERKUNCI</span></div>
         <label for="policySelect">Aturan Konsensus:</label>
@@ -200,8 +260,6 @@
         <button class="btn-b" id="btnInit" onclick="initNetwork()" disabled>⚡ Aktifkan Jaringan P2P</button>
         <div class="status" id="s1">Tunggu koneksi wallet.</div>
     </div>
-
-    <!-- STEP 2: DEPLOY -->
     <div class="step-card" id="c2">
         <div class="step-title">🚀 Step 3 &mdash; Deploy Smart Contract <span class="sbadge" id="b2">TERKUNCI</span></div>
         <p class="step-note">Deploy <b>SecureDocumentTransfer.sol</b> ke blockchain. Mode Simulasi: tidak perlu gas nyata.</p>
@@ -216,8 +274,6 @@
             <input type="text" id="deployAddrDisplay" readonly />
         </div>
     </div>
-
-    <!-- STEP 3: HASH -->
     <div class="step-card" id="c3">
         <div class="step-title">🔐 Step 4 &mdash; Hash Dokumen SHA-256 <span class="sbadge" id="b3">TERKUNCI</span></div>
         <label class="file-drop" id="fileDrop" for="fileInput">
@@ -230,8 +286,6 @@
         <input type="text" id="docHash" placeholder="Akan muncul setelah file dipilih" readonly style="font-size:10px;font-family:monospace;" />
         <div class="status" id="s3">Tunggu deploy kontrak.</div>
     </div>
-
-    <!-- STEP 4: REGISTER -->
     <div class="step-card" id="c4">
         <div class="step-title">📋 Step 5 &mdash; Daftarkan Dokumen ke Ledger <span class="sbadge" id="b4">TERKUNCI</span></div>
         <label for="regHash">Hash Dokumen:</label>
@@ -241,8 +295,6 @@
         <button class="btn-g" id="btnReg" onclick="registerDocument()" disabled>📋 Amankan Dokumen ke Blockchain</button>
         <div class="status" id="s4">Tunggu hash dokumen.</div>
     </div>
-
-    <!-- STEP 5: TRANSFER -->
     <div class="step-card" id="c5">
         <div class="step-title">🔄 Step 6 &mdash; Transfer Hak Kepemilikan <span class="sbadge" id="b5">TERKUNCI</span></div>
         <label for="txHash">Hash Dokumen:</label>
@@ -252,8 +304,6 @@
         <button class="btn-o" id="btnTx" onclick="transferDocument()" disabled>🔄 Kirim Hak Dokumen ke Penerima</button>
         <div class="status" id="s5">Tunggu registrasi dokumen.</div>
     </div>
-
-    <!-- STEP 6: VERIFY -->
     <div class="step-card" id="c6">
         <div class="step-title">✅ Step 7 &mdash; Verifikasi Kepemilikan <span class="sbadge" id="b6">TERKUNCI</span></div>
         <label for="verifyHash">Hash Dokumen untuk Verifikasi:</label>
@@ -269,12 +319,8 @@
         </div>
         <div class="status" id="s6">Tunggu transfer selesai.</div>
     </div>
-
 </div><!-- end control -->
-
 <div class="visual">
-
-    <!-- CONTRACT INFO -->
     <div class="vcard">
         <h4>📄 Smart Contract — SecureDocumentTransfer</h4>
         <div class="ig">
@@ -286,8 +332,6 @@
             <div class="ii"><div class="lbl">Gas Digunakan</div><div class="val" id="ciGas">-</div></div>
         </div>
     </div>
-
-    <!-- NODES -->
     <div class="vcard">
         <h4>🌐 P2P Network — Kluster Node Validator</h4>
         <div class="node-grid" id="nodeGrid">
@@ -297,29 +341,23 @@
             <div class="node" id="n3"><span class="icon">🔗</span>Peer Node<br><small>Offline</small></div>
         </div>
         <div style="margin-top:10px;display:flex;gap:20px;flex-wrap:wrap;">
-            <div>
-                <div style="font-size:10px;color:#555;margin-bottom:3px;">Alice (Pengirim)</div>
-                <div id="aliceNodeAddr" style="font-family:monospace;font-size:10px;color:#007bff;">-</div>
-            </div>
-            <div>
-                <div style="font-size:10px;color:#555;margin-bottom:3px;">Bob (Penerima)</div>
-                <div id="bobNodeAddr" style="font-family:monospace;font-size:10px;color:#17a2b8;">-</div>
-            </div>
+            <div><div style="font-size:10px;color:#555;margin-bottom:3px;">Alice (Pengirim)</div><div id="aliceNodeAddr" style="font-family:monospace;font-size:10px;color:#007bff;">-</div></div>
+            <div><div style="font-size:10px;color:#555;margin-bottom:3px;">Bob (Penerima)</div><div id="bobNodeAddr" style="font-family:monospace;font-size:10px;color:#17a2b8;">-</div></div>
         </div>
     </div>
-
-    <!-- LEDGER -->
     <div class="vcard">
-        <h4>📖 Distributed Ledger — Global State Log</h4>
-        <div class="ledger" id="ledger"><span style="color:#444;">Sistem belum aktif...</span></div>
+        <h4>📖 Distributed Ledger — Global State Log
+            <button class="ledger-expand-btn" onclick="openLedgerModal()" title="Fullscreen + Analisis">⛶ Fullscreen</button>
+        </h4>
+        <div class="ledger" id="ledger"><span class="ledger-placeholder">Sistem belum aktif. Mulai simulasi untuk melihat log...</span></div>
     </div>
-
-    <!-- BLOCK EXPLORER -->
     <div class="vcard">
-        <h4>⛓️ Block Explorer — Immutable Chain Storage</h4>
+        <h4>⛓️ Block Explorer — Immutable Chain Storage
+            <span style="font-size:10px;color:#555;margin-left:auto;font-weight:normal;text-transform:none;">Klik blok untuk detail</span>
+        </h4>
         <div class="chain-wrap">
             <div class="chain" id="chain">
-                <div class="block genesis">
+                <div class="block genesis" onclick="openBlockModal(0)" title="Klik untuk detail">
                     <div style="font-size:1.4rem;">🏛️</div>
                     <b>Block #0</b><br>
                     <span style="color:#ffc107;">GENESIS</span><br>
@@ -333,14 +371,45 @@
             &nbsp;|&nbsp; Total Tx: <span id="txCount" style="color:#ffc107;font-weight:bold;">0</span>
         </div>
     </div>
-
 </div><!-- end visual -->
 </div><!-- end main -->
 
+<!-- MODAL 1: LEDGER + FLOW ANALYSIS -->
+<div class="modal-overlay" id="ledgerModal">
+    <div class="modal-box" style="max-width:960px;">
+        <div class="modal-hdr">
+            <span style="font-size:1.3rem;">📖</span>
+            <span class="modal-hdr-title">Distributed Ledger &amp; Blockchain Flow Analysis</span>
+            <button class="modal-close" onclick="closeLedgerModal()">✕ Tutup</button>
+        </div>
+        <div class="modal-tabs">
+            <button class="modal-tab active" id="tabBtnLog" onclick="showTab('log')">📋 Log Aktivitas</button>
+            <button class="modal-tab" id="tabBtnFlow" onclick="showTab('flow')">📊 Analisis Flow &amp; Matematika</button>
+        </div>
+        <div class="modal-body">
+            <div class="tab-panel active" id="tabLog">
+                <div class="ledger-full" id="ledgerFull"></div>
+            </div>
+            <div class="tab-panel" id="tabFlow">
+                <div id="flowAnalysis"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 2: BLOCK DETAIL -->
+<div class="modal-overlay" id="blockModal">
+    <div class="modal-box">
+        <div class="modal-hdr">
+            <span id="blockModalIcon" style="font-size:1.4rem;">📦</span>
+            <span class="modal-hdr-title" id="blockModalTitle">Block Detail</span>
+            <button class="modal-close" onclick="closeBlockModal()">✕ Tutup</button>
+        </div>
+        <div class="modal-body" style="padding:16px 20px;" id="blockModalBody"></div>
+    </div>
+</div>
+
 <script>
-// ============================================================
-// CONTRACT DATA — Embedded from Hardhat Artifact
-// ============================================================
 const CONTRACT_ABI = [
     {
         "anonymous": false,
@@ -458,566 +527,544 @@ const CONTRACT_ABI = [
         "type": "function"
     }
 ];
-
 const CONTRACT_BYTECODE = '0x608060405234801561001057600080fd5b50610f9a806100206000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c80631c49ea91146100465780637ccb6a6414610062578063faff6eb514610094575b600080fd5b610060600480360381019061005b91906107ca565b6100b0565b005b61007c60048036038101906100779190610842565b610248565b60405161008b93929190610964565b60405180910390f35b6100ae60048036038101906100a991906109ce565b610489565b005b600080836040516100c19190610a66565b908152602001604051809103902060000180546100dd90610aac565b90501461011f576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161011690610b29565b60405180910390fd5b60405180608001604052808381526020018281526020013373ffffffffffffffffffffffffffffffffffffffff168152602001428152506000836040516101669190610a66565b908152602001604051809103902060008201518160000190816101899190610cf5565b50602082015181600101908161019f9190610cf5565b5060408201518160020160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550606082015181600301559050503373ffffffffffffffffffffffffffffffffffffffff167f5492a76eb326b010759123732d35cb2885698a27b0f7b5e56779f227db15c9d2838360405161023c929190610dc7565b60405180910390a25050565b60606000806000808560405161025e9190610a66565b9081526020016040518091039020600001805461027a90610aac565b9050036102bc576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016102b390610e4a565b60405180910390fd5b600080856040516102cd9190610a66565b90815260200160405180910390206040518060800160405290816000820180546102f690610aac565b80601f016020809104026020016040519081016040528092919081815260200182805461032290610aac565b801561036f5780601f106103445761010080835404028352916020019161036f565b820191906000526020600020905b81548152906001019060200180831161035257829003601f168201915b5050505050815260200160018201805461038890610aac565b80601f01602080910402602001604051908101604052809291908181526020018280546103b490610aac565b80156104015780601f106103d657610100808354040283529160200191610401565b820191906000526020600020905b8154815290600101906020018083116103e457829003601f168201915b505050505081526020016002820160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020016003820154815250509050806020015181604001518260600151935093509350509193909250565b3373ffffffffffffffffffffffffffffffffffffffff166000836040516104b09190610a66565b908152602001604051809103902060020160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614610538576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161052f90610eb6565b60405180910390fd5b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff16036105a7576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161059e90610f22565b60405180910390fd5b806000836040516105b89190610a66565b908152602001604051809103902060020160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055508073ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff167fa94d757639efc91e9f6715ecf73e64a1ff2533ffca5421a65dfebdae7321151d846040516106649190610f42565b60405180910390a35050565b6000604051905090565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b6106d78261068e565b810181811067ffffffffffffffff821117156106f6576106f561069f565b5b80604052505050565b6000610709610670565b905061071582826106ce565b919050565b600067ffffffffffffffff8211156107355761073461069f565b5b61073e8261068e565b9050602081019050919050565b82818337600083830152505050565b600061076d6107688461071a565b6106ff565b90508281526020810184848401111561078957610788610689565b5b61079484828561074b565b509392505050565b600082601f8301126107b1576107b0610684565b5b81356107c184826020860161075a565b91505092915050565b600080604083850312156107e1576107e061067a565b5b600083013567ffffffffffffffff8111156107ff576107fe61067f565b5b61080b8582860161079c565b925050602083013567ffffffffffffffff81111561082c5761082b61067f565b5b6108388582860161079c565b9150509250929050565b6000602082840312156108585761085761067a565b5b600082013567ffffffffffffffff8111156108765761087561067f565b5b6108828482850161079c565b91505092915050565b600081519050919050565b600082825260208201905092915050565b60005b838110156108c55780820151818401526020810190506108aa565b60008484015250505050565b60006108dc8261088b565b6108e68185610896565b93506108f68185602086016108a7565b6108ff8161068e565b840191505092915050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b60006109358261090a565b9050919050565b6109458161092a565b82525050565b6000819050919050565b61095e8161094b565b82525050565b6000606082019050818103600083015261097e81866108d1565b905061098d602083018561093c565b61099a6040830184610955565b949350505050565b6109ab8161092a565b81146109b657600080fd5b50565b6000813590506109c8816109a2565b92915050565b600080604083850312156109e5576109e461067a565b5b600083013567ffffffffffffffff811115610a0357610a0261067f565b5b610a0f8582860161079c565b9250506020610a20858286016109b9565b9150509250929050565b600081905092915050565b6000610a408261088b565b610a4a8185610a2a565b9350610a5a8185602086016108a7565b80840191505092915050565b6000610a728284610a35565b915081905092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602260045260246000fd5b60006002820490506001821680610ac457607f821691505b602082108103610ad757610ad6610a7d565b5b50919050565b7f446f6b756d656e207375646168207465726461667461722e0000000000000000600082015250565b6000610b13601883610896565b9150610b1e82610add565b602082019050919050565b60006020820190508181036000830152610b4281610b06565b9050919050565b60008190508160005260206000209050919050565b60006020601f8301049050919050565b600082821b905092915050565b600060088302610bab7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82610b6e565b610bb58683610b6e565b95508019841693508086168417925050509392505050565b6000819050919050565b6000610bf2610bed610be88461094b565b610bcd565b61094b565b9050919050565b6000819050919050565b610c0c83610bd7565b610c20610c1882610bf9565b848454610b7b565b825550505050565b600090565b610c35610c28565b610c40818484610c03565b505050565b5b81811015610c6457610c59600082610c2d565b600181019050610c46565b5050565b601f821115610ca957610c7a81610b49565b610c8384610b5e565b81016020851015610c92578190505b610ca6610c9e85610b5e565b830182610c45565b50505b505050565b600082821c905092915050565b6000610ccc60001984600802610cae565b1980831691505092915050565b6000610ce58383610cbb565b9150826002028217905092915050565b610cfe8261088b565b67ffffffffffffffff811115610d1757610d1661069f565b5b610d218254610aac565b610d2c828285610c68565b600060209050601f831160018114610d5f5760008415610d4d578287015190505b610d578582610cd9565b865550610dbf565b601f198416610d6d86610b49565b60005b82811015610d9557848901518255600182019150602085019450602081019050610d70565b86831015610db25784890151610dae601f891682610cbb565b8355505b6001600288020188555050505b505050505050565b60006040820190508181036000830152610de181856108d1565b90508181036020830152610df581846108d1565b90509392505050565b7f446f6b756d656e20746964616b20646974656d756b616e2e0000000000000000600082015250565b6000610e34601883610896565b9150610e3f82610dfe565b602082019050919050565b60006020820190508181036000830152610e6381610e27565b9050919050565b7f416e64612062756b616e2070656d696c696b20646f6b756d656e20696e692e00600082015250565b6000610ea0601f83610896565b9150610eab82610e6a565b602082019050919050565b60006020820190508181036000830152610ecf81610e93565b9050919050565b7f416c616d61742070656e6572696d6120746964616b2076616c69642e00000000600082015250565b6000610f0c601c83610896565b9150610f1782610ed6565b602082019050919050565b60006020820190508181036000830152610f3b81610eff565b9050919050565b60006020820190508181036000830152610f5c81846108d1565b90509291505056fea26469706673582212203e354e278633217c474decf2f80c92fb5b2e7104925b012de504761dea7fead164736f6c63430008140033';
 
-// ============================================================
-// STATE
-// ============================================================
-let SIM_MODE = true;          // true = simulation, false = MetaMask
+// ── STATE ──────────────────────────────────────────────────
+let SIM_MODE = true;
 let provider, signer, contract;
 let CONTRACT_ADDRESS = null;
-let aliceAddress = null;
-let bobAddress   = null;
-let blockNum = 0;
-let txTotal  = 0;
-let stepsDone = 0;
-let simFakeBlockNum = 12340000;  // simulated starting block
+let aliceAddress = null, bobAddress = null;
+let blockNum = 0, txTotal = 0, stepsDone = 0;
+let simFakeBlockNum = 12340000;
+let currentPolicy = 'PoA';
+let docHashGlobal = null, docNameGlobal = null;
+const simDocs = new Map();
 
-// Simulated on-chain state (in-memory ledger)
-const simDocs = new Map();       // docHash → { name, owner, timestamp, regBlock, regTx }
-let simContractAddress = null;
+const blockRegistry = [{
+    idx:0, num:0, type:'GENESIS', icon:'🏛️',
+    blockHash:'0x'+('0'.repeat(64)),
+    prevHash:'0x'+('0'.repeat(64)),
+    txHash:null, timestamp:new Date().toLocaleString('id-ID'),
+    blockNum:0, gasUsed:'0', gasLimit:'30,000,000',
+    nonce:'0x0000000000000000', difficulty:'0 (Genesis)',
+    size:'285 bytes', txCount:0,
+    contractAddr:null, docName:null, docHash:null,
+    from:null, to:null, owner:null, extra:null
+}];
 
-// ============================================================
-// UTILS
-// ============================================================
-function ts() {
-    return new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-}
-
+// ── LOG (BUG FIXED: only remove .ledger-placeholder, never wipe all logs) ──
 function log(msg, type) {
-    const colors = {info:'#00ffcc',warn:'#ffc107',err:'#ff5555',addr:'#aaddff',hash:'#cc88ff',ok:'#28dd88',sim:'#b57bff'};
-    const color = colors[type] || '#00ffcc';
+    const colors={info:'#00ffcc',warn:'#ffc107',err:'#ff5555',addr:'#aaddff',hash:'#cc88ff',ok:'#28dd88',sim:'#b57bff'};
+    const color = colors[type]||'#00ffcc';
     const el = document.getElementById('ledger');
-    if (el.querySelector('span[style]')) el.innerHTML = '';  // clear placeholder
+    const ph = el.querySelector('.ledger-placeholder');
+    if (ph) ph.remove();   // remove placeholder only
     const div = document.createElement('div');
     div.innerHTML = '<span style="color:#333;">['+ts()+']</span> <span style="color:'+color+';">'+msg+'</span>';
     el.appendChild(div);
     el.scrollTop = el.scrollHeight;
 }
 
-function setStat(id, msg, cls) {
-    const el = document.getElementById('s'+id);
-    if (!el) return;
-    el.textContent = msg;
-    el.className = 'status'+(cls?' '+cls:'');
+function ts() { return new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+
+function setStat(id,msg,cls){const el=document.getElementById('s'+id);if(!el)return;el.textContent=msg;el.className='status'+(cls?' '+cls:'');}
+function setActive(id){const c=document.getElementById('c'+id);if(c)c.className='step-card active';const b=document.getElementById('b'+id);if(b){b.textContent='AKTIF';b.className='sbadge active';}}
+function setDone(id){const c=document.getElementById('c'+id);if(c)c.className='step-card done';const b=document.getElementById('b'+id);if(b){b.textContent='✓ SELESAI';b.className='sbadge done';}
+    stepsDone=Math.max(stepsDone,id+1);const pct=Math.round((stepsDone/6)*100);
+    document.getElementById('progFill').style.width=pct+'%';
+    document.getElementById('progLabel').textContent='Step '+stepsDone+' / 6 — '+pct+'%';}
+
+// ── BLOCK UTILS ────────────────────────────────────────────
+function addBlock(type,label,extra,meta){
+    blockNum++;txTotal++;
+    document.getElementById('blockCount').textContent=blockNum+1;
+    document.getElementById('txCount').textContent=txTotal;
+    const icons={DEPLOY:'🚀',REGISTER:'📋',TRANSFER:'🔄',VERIFY:'✅'};
+    const idx=blockRegistry.length;
+    const prevEntry=blockRegistry[idx-1];
+    const bHash=fakeTxHash();
+    const entry=Object.assign({idx,num:blockNum,type,icon:icons[type]||'📦',
+        blockHash:bHash,prevHash:prevEntry?prevEntry.blockHash:'0x'+('0'.repeat(64)),
+        timestamp:new Date().toLocaleString('id-ID'),
+        blockNum:meta&&meta.blockNum?meta.blockNum:(simFakeBlockNum+blockNum),
+        gasUsed:'0',gasLimit:'30,000,000',
+        nonce:'0x'+Math.floor(Math.random()*0xffffffff).toString(16).padStart(16,'0'),
+        difficulty:SIM_MODE?'0 ('+currentPolicy+')':'N/A',
+        size:Math.floor(Math.random()*800+400)+' bytes',txCount:1,
+        contractAddr:null,docName:null,docHash:null,from:null,to:null,owner:null,txHash:null,extra},meta||{});
+    blockRegistry.push(entry);
+    const chain=document.getElementById('chain');
+    const arr=document.createElement('span');arr.className='arrow';arr.textContent='→';chain.appendChild(arr);
+    const b=document.createElement('div');b.className='block '+type.toLowerCase();b.title='Klik untuk detail Block #'+blockNum;
+    b.innerHTML='<div style="font-size:1.3rem;">'+(icons[type]||'📦')+'</div><b>Block #'+blockNum+'</b><br><span style="color:#aaddff;">'+type+'</span><br><small style="color:#888;">'+label.substring(0,14)+'</small><br><small style="color:#555;">'+extra+'</small>';
+    b.onclick=()=>openBlockModal(idx);chain.appendChild(b);chain.scrollLeft=chain.scrollWidth;
 }
 
-function setActive(id) {
-    const c = document.getElementById('c'+id);
-    if(c) c.className = 'step-card active';
-    const b = document.getElementById('b'+id);
-    if(b){ b.textContent = 'AKTIF'; b.className = 'sbadge active'; }
+function syncNodes(ms){
+    ['n0','n1','n2','n3'].forEach(id=>{const n=document.getElementById(id);n.classList.add('syncing');n.querySelector('small').textContent='Syncing...';});
+    setTimeout(()=>['n0','n1','n2','n3'].forEach(id=>{const n=document.getElementById(id);n.classList.remove('syncing');if(n.classList.contains('online')||n.classList.contains('sender')||n.classList.contains('receiver'))n.querySelector('small').textContent='Online ✓';}),ms||3000);
 }
-
-function setDone(id) {
-    const c = document.getElementById('c'+id);
-    if(c) c.className = 'step-card done';
-    const b = document.getElementById('b'+id);
-    if(b){ b.textContent = '✓ SELESAI'; b.className = 'sbadge done'; }
-    stepsDone = Math.max(stepsDone, id+1);
-    const pct = Math.round((stepsDone/6)*100);
-    document.getElementById('progFill').style.width = pct+'%';
-    document.getElementById('progLabel').textContent = 'Step '+stepsDone+' / 6 — '+pct+'%';
+function bringNodesOnline(){
+    ['n0','n1','n2','n3'].forEach(id=>{const n=document.getElementById(id);n.classList.add('online');n.querySelector('small').textContent='Online ✓';});
+    const nA=document.getElementById('n0');nA.classList.remove('online');nA.classList.add('sender');
+    nA.innerHTML='<span class="icon">👩</span>Alice<br><small>Online ✓</small>';
 }
+function fakeDelay(ms){return new Promise(r=>setTimeout(r,ms));}
+function fakeTxHash(){const a=new Uint8Array(32);crypto.getRandomValues(a);return '0x'+Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');}
+function fakeAddress(){const a=new Uint8Array(20);crypto.getRandomValues(a);return '0x'+Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');}
+function nextSimBlock(){simFakeBlockNum+=Math.floor(Math.random()*3)+1;return simFakeBlockNum;}
+function fakeGas(){return (Math.floor(Math.random()*80000)+120000).toString();}
 
-function addBlock(type, label, extra) {
-    blockNum++;
-    txTotal++;
-    document.getElementById('blockCount').textContent = blockNum+1;
-    document.getElementById('txCount').textContent = txTotal;
-    const icons = {DEPLOY:'🚀',REGISTER:'📋',TRANSFER:'🔄',VERIFY:'✅'};
-    const chain = document.getElementById('chain');
-    const arr = document.createElement('span');
-    arr.className = 'arrow'; arr.textContent = '→';
-    chain.appendChild(arr);
-    const b = document.createElement('div');
-    b.className = 'block '+type.toLowerCase();
-    b.innerHTML = '<div style="font-size:1.3rem;">'+(icons[type]||'📦')+'</div><b>Block #'+blockNum+'</b><br><span style="color:#aaddff;">'+type+'</span><br><small style="color:#888;">'+label.substring(0,14)+'</small><br><small style="color:#555;">'+extra+'</small>';
-    chain.appendChild(b);
-    chain.scrollLeft = chain.scrollWidth;
-}
-
-function syncNodes(ms) {
-    ['n0','n1','n2','n3'].forEach(id => {
-        const n = document.getElementById(id);
-        n.classList.add('syncing');
-        n.querySelector('small').textContent = 'Syncing...';
+// ── MODAL TABS ─────────────────────────────────────────────
+function showTab(tab){
+    ['log','flow'].forEach(t=>{
+        document.getElementById('tabBtn'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active',t===tab);
+        document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active',t===tab);
     });
-    setTimeout(() => {
-        ['n0','n1','n2','n3'].forEach(id => {
-            const n = document.getElementById(id);
-            n.classList.remove('syncing');
-            if(n.classList.contains('online')||n.classList.contains('sender')||n.classList.contains('receiver')) {
-                n.querySelector('small').textContent = 'Online ✓';
-            }
-        });
-    }, ms||3000);
+    if(tab==='flow') buildFlowAnalysis();
 }
 
-function bringNodesOnline() {
-    ['n0','n1','n2','n3'].forEach(id => {
-        const n = document.getElementById(id);
-        n.classList.add('online');
-        n.querySelector('small').textContent = 'Online ✓';
-    });
-    // Mark Alice's node
-    const nA = document.getElementById('n0');
-    nA.classList.remove('online'); nA.classList.add('sender');
-    nA.innerHTML = '<span class="icon">👩</span>Alice<br><small>Online ✓</small>';
+// ── LEDGER MODAL ───────────────────────────────────────────
+function openLedgerModal(){
+    document.getElementById('ledgerFull').innerHTML = document.getElementById('ledger').innerHTML;
+    document.getElementById('ledgerFull').querySelector('.ledger-placeholder') && (document.getElementById('ledgerFull').querySelector('.ledger-placeholder').style.color='#444');
+    document.getElementById('ledgerModal').classList.add('open');
+    showTab('log');
+    setTimeout(()=>document.getElementById('ledgerFull').scrollTop=9999,50);
 }
+function closeLedgerModal(){document.getElementById('ledgerModal').classList.remove('open');}
 
-// Simulation helpers
-function fakeDelay(ms) {
-    return new Promise(r => setTimeout(r, ms));
-}
+// ── FLOW ANALYSIS BUILDER ───────────────────────────────────
+function buildFlowAnalysis(){
+    const c = document.getElementById('flowAnalysis');
+    const steps = [
+        {id:'conn',  icon:'👛', label:'Koneksi',  sub:'MetaMask / Sim', done: stepsDone>=1},
+        {id:'net',   icon:'⚙️', label:'Jaringan', sub:currentPolicy,    done: stepsDone>=2},
+        {id:'deploy',icon:'🚀', label:'Deploy',   sub:'Smart Contract', done: stepsDone>=3},
+        {id:'hash',  icon:'🔐', label:'Hash',     sub:'SHA-256',        done: stepsDone>=4},
+        {id:'reg',   icon:'📋', label:'Register', sub:'On-chain',       done: stepsDone>=5},
+        {id:'tx',    icon:'🔄', label:'Transfer', sub:'Alice→Bob',      done: stepsDone>=6},
+        {id:'verify',icon:'✅', label:'Verify',   sub:'Kepemilikan',    done: stepsDone>=6},
+    ];
 
-function fakeTxHash() {
-    const arr = new Uint8Array(32);
-    crypto.getRandomValues(arr);
-    return '0x' + Array.from(arr).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-function fakeAddress() {
-    const arr = new Uint8Array(20);
-    crypto.getRandomValues(arr);
-    return '0x' + Array.from(arr).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-function nextSimBlock() {
-    simFakeBlockNum += Math.floor(Math.random()*3)+1;
-    return simFakeBlockNum;
-}
-
-function fakeGas() {
-    return (Math.floor(Math.random()*80000)+120000).toString();
-}
-
-// ============================================================
-// MODE TOGGLE
-// ============================================================
-function setMode(mode) {
-    SIM_MODE = (mode === 'sim');
-    document.getElementById('btnSimMode').className = SIM_MODE ? 'active' : '';
-    document.getElementById('btnRealMode').className = SIM_MODE ? '' : 'active';
-    document.getElementById('panelSim').style.display  = SIM_MODE ? 'block' : 'none';
-    document.getElementById('panelReal').style.display = SIM_MODE ? 'none'  : 'block';
-    document.getElementById('modeBadge').textContent = SIM_MODE ? '🎮 Sim Mode' : '🦊 Real Mode';
-    document.getElementById('modeBadge').className = SIM_MODE ? 'badge sim-active' : 'badge';
-    // Reset step 0 card
-    document.getElementById('c0').className = 'step-card active';
-    log('Mode diubah ke: '+(SIM_MODE?'Simulasi (Dummy ETH)':'Nyata (MetaMask)'),'sim');
-}
-
-// ============================================================
-// STEP 0A — SIMULATION START
-// ============================================================
-async function startSimulation() {
-    const senderVal   = document.getElementById('simSender').value.trim();
-    const receiverVal = document.getElementById('simReceiver').value.trim();
-
-    if (!ethers.isAddress(senderVal))   { setStat(0,'Alamat Alice tidak valid!','err'); return; }
-    if (!ethers.isAddress(receiverVal)) { setStat(0,'Alamat Bob tidak valid!','err'); return; }
-    if (senderVal.toLowerCase() === receiverVal.toLowerCase()) {
-        setStat(0,'Alice dan Bob tidak boleh alamat yang sama!','err'); return;
-    }
-
-    aliceAddress = senderVal;
-    bobAddress   = receiverVal;
-
-    document.getElementById('walletBadge').textContent   = '🎮 '+aliceAddress.substring(0,6)+'...'+aliceAddress.slice(-4);
-    document.getElementById('networkBadge').textContent  = '🟢 Chain 1337 (Sim)';
-    document.getElementById('ciNet').textContent         = 'Chain ID: 1337 (Simulated Ganache)';
-    document.getElementById('ciDeployer').textContent    = aliceAddress;
-    document.getElementById('ownerAddr').value           = aliceAddress;
-    document.getElementById('receiverAddr').value        = bobAddress;
-    document.getElementById('aliceNodeAddr').textContent = aliceAddress;
-    document.getElementById('bobNodeAddr').textContent   = bobAddress;
-
-    setDone(0); setActive(1);
-    setStat(0,'Simulasi dimulai. Alice: '+aliceAddress.substring(0,10)+'...','ok');
-
-    document.getElementById('policySelect').disabled = false;
-    document.getElementById('nodeCount').disabled    = false;
-    document.getElementById('btnInit').disabled      = false;
-
-    log('=== MODE SIMULASI (DUMMY ETHEREUM) ===','sim');
-    log('Alice (Pengirim): '+aliceAddress,'addr');
-    log('Bob   (Penerima): '+bobAddress,'addr');
-    log('Balance Alice: 100 ETH (dummy) | Balance Bob: 100 ETH (dummy)','info');
-    log('Semua transaksi bersifat simulasi — tidak ada gas nyata.','sim');
-}
-
-// ============================================================
-// STEP 0B — REAL METAMASK
-// ============================================================
-async function connectWallet() {
-    if (!window.ethereum) { alert('MetaMask tidak terdeteksi!'); return; }
-    const btn = document.getElementById('btnConn');
-    btn.disabled = true; btn.textContent = 'Menghubungkan...';
-    try {
-        provider = new ethers.BrowserProvider(window.ethereum, 'any');
-        await provider.send('eth_requestAccounts', []);
-        signer = await provider.getSigner();
-        aliceAddress = await signer.getAddress();
-        const network = await provider.getNetwork();
-        const chainId = network.chainId.toString();
-        const bal = parseFloat(ethers.formatEther(await provider.getBalance(aliceAddress))).toFixed(4);
-
-        document.getElementById('walletBadge').textContent   = '🦊 '+aliceAddress.substring(0,6)+'...'+aliceAddress.slice(-4);
-        document.getElementById('networkBadge').textContent  = '🟢 Chain '+chainId;
-        document.getElementById('ciNet').textContent         = 'Chain ID: '+chainId;
-        document.getElementById('ciDeployer').textContent    = aliceAddress;
-        document.getElementById('ownerAddr').value           = aliceAddress;
-        document.getElementById('aliceNodeAddr').textContent = aliceAddress;
-
-        setDone(0); setActive(1);
-        setStat(0,'Terhubung: '+aliceAddress+' | Balance: '+bal+' ETH','ok');
-        document.getElementById('policySelect').disabled = false;
-        document.getElementById('nodeCount').disabled    = false;
-        document.getElementById('btnInit').disabled      = false;
-
-        log('MetaMask terhubung. Alamat Alice: '+aliceAddress,'addr');
-        log('Chain ID: '+chainId+' | Balance: '+bal+' ETH','info');
-        window.ethereum.on('accountsChanged', () => location.reload());
-        provider.on('network', (newNet, oldNet) => { if (oldNet) location.reload(); });
-    } catch(e) {
-        btn.disabled = false; btn.textContent = '🦊 Hubungkan MetaMask';
-        setStat(0,'Gagal: '+(e.message||e),'err');
-        log('ERROR: '+(e.message||e),'err');
-    }
-}
-
-// ============================================================
-// STEP 1 — INIT NETWORK
-// ============================================================
-function initNetwork() {
-    const policy = document.getElementById('policySelect').value;
-    bringNodesOnline();
-    setDone(1); setActive(2);
-    setStat(1,'Jaringan aktif. Konsensus: '+policy,'ok');
-    document.getElementById('btnDeploy').disabled = false;
-    setStat(2,'Siap deploy Smart Contract.','ok');
-    log('='.repeat(45),'info');
-    log('Jaringan P2P diinisialisasi. Konsensus: '+policy,'ok');
-    log('Enkripsi: SHA-256 | Hash EVM: Keccak-256','info');
-    log('4 Node validator online dan siap menerima transaksi.','ok');
-}
-
-// ============================================================
-// STEP 2 — DEPLOY CONTRACT
-// ============================================================
-async function deployContract() {
-    const btn = document.getElementById('btnDeploy');
-    btn.disabled = true;
-
-    if (SIM_MODE) {
-        btn.textContent = '🚀 Deploying... (simulasi)';
-        setStat(2,'Menyimulasikan deploy kontrak...','');
-        log('Memulai simulasi deploy SecureDocumentTransfer.sol...','warn');
-        syncNodes(3000);
-        await fakeDelay(800);
-        log('Menghitung bytecode hash...','sim');
-        await fakeDelay(600);
-        log('Menyebarkan bytecode ke semua node...','sim');
-        await fakeDelay(1000);
-
-        simContractAddress = fakeAddress();
-        CONTRACT_ADDRESS   = simContractAddress;
-        const simBlock = nextSimBlock();
-        const simTx    = fakeTxHash();
-        const simGas   = fakeGas();
-
-        document.getElementById('contractBadge').textContent        = '📄 '+CONTRACT_ADDRESS.substring(0,8)+'...';
-        document.getElementById('ciStat').textContent               = '✅ Deployed (Sim)';
-        document.getElementById('ciStat').style.color               = '#b57bff';
-        document.getElementById('ciAddr').textContent               = CONTRACT_ADDRESS;
-        document.getElementById('ciBlock').textContent              = simBlock;
-        document.getElementById('ciGas').textContent                = simGas+' (simulated)';
-        document.getElementById('deployAddrRow').style.display      = 'block';
-        document.getElementById('deployAddrDisplay').value          = CONTRACT_ADDRESS;
-
-        setDone(2); setActive(3);
-        setStat(2,'[SIM] Deploy berhasil! Kontrak di: '+CONTRACT_ADDRESS.substring(0,18)+'...','ok');
-        setStat(3,'Silakan upload dokumen Anda.','ok');
-        document.getElementById('fileInput').disabled = false;
-
-        log('✅ [SIM] Kontrak berhasil di-deploy!','ok');
-        log('Alamat Kontrak: '+CONTRACT_ADDRESS,'addr');
-        log('Tx Hash: '+simTx,'hash');
-        log('Block #'+simBlock+' | Gas: '+simGas,'info');
-        addBlock('DEPLOY','SecureDocTransfer','B#'+simBlock);
-
-    } else {
-        btn.textContent = '🚀 Deploying... (konfirmasi MetaMask)';
-        setStat(2,'Mengirim transaksi deploy...','');
-        try {
-            log('Deploy via ContractFactory...','warn');
-            syncNodes(8000);
-            const factory = new ethers.ContractFactory(CONTRACT_ABI, CONTRACT_BYTECODE, signer);
-            const deployTx = await factory.deploy();
-            const txHash = deployTx.deploymentTransaction().hash;
-            log('Deploy tx: '+txHash,'hash');
-            setStat(2,'Tx terkirim. Menunggu konfirmasi blok...','');
-            const deployed = await deployTx.waitForDeployment();
-            CONTRACT_ADDRESS = await deployed.getAddress();
-            contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-            const receipt = await provider.getTransactionReceipt(txHash);
-
-            document.getElementById('contractBadge').textContent   = '📄 '+CONTRACT_ADDRESS.substring(0,8)+'...';
-            document.getElementById('ciStat').textContent          = '✅ Deployed';
-            document.getElementById('ciStat').style.color          = '#28a745';
-            document.getElementById('ciAddr').textContent          = CONTRACT_ADDRESS;
-            document.getElementById('ciBlock').textContent         = receipt.blockNumber;
-            document.getElementById('ciGas').textContent           = receipt.gasUsed.toString();
-            document.getElementById('deployAddrRow').style.display = 'block';
-            document.getElementById('deployAddrDisplay').value     = CONTRACT_ADDRESS;
-
-            setDone(2); setActive(3);
-            setStat(2,'Deploy berhasil! Kontrak aktif di: '+CONTRACT_ADDRESS.substring(0,18)+'...','ok');
-            setStat(3,'Silakan upload dokumen Anda.','ok');
-            document.getElementById('fileInput').disabled = false;
-
-            log('✅ Kontrak berhasil di-deploy!','ok');
-            log('Alamat: '+CONTRACT_ADDRESS,'addr');
-            log('Block #'+receipt.blockNumber+' | Gas: '+receipt.gasUsed.toString(),'info');
-            addBlock('DEPLOY','SecureDocTransfer','B#'+receipt.blockNumber);
-        } catch(e) {
-            btn.disabled = false; btn.textContent = '🚀 Deploy Kontrak ke Blockchain';
-            setStat(2,'Gagal: '+(e.reason||e.message),'err');
-            log('ERROR deploy: '+(e.reason||e.message),'err');
-            return;
+    // ── Section A: Pipeline ──────────────────────────────
+    let pipeHtml = '<div class="fa-section"><div class="fa-section-title">🔄 Alur Proses Blockchain (Pipeline)</div><div class="pipeline">';
+    steps.forEach((s,i)=>{
+        const cls = s.done?'done':'pending';
+        pipeHtml += '<div class="pipe-node"><div class="pipe-icon '+cls+'">'+s.icon+'</div><div class="pipe-label"><strong>'+s.label+'</strong>'+s.sub+'</div></div>';
+        if(i<steps.length-1){
+            pipeHtml += '<div class="pipe-connector '+(s.done&&steps[i+1].done?'done':'')+'"><span>→</span></div>';
         }
+    });
+    pipeHtml += '</div></div>';
+
+    // ── Section B: Hash Chain ────────────────────────────
+    let chainHtml = '<div class="fa-section"><div class="fa-section-title">⛓️ Rantai Hash Blok — Kalkulasi Matematis</div><div class="hash-chain">';
+    blockRegistry.forEach(e=>{
+        const badgeCls = e.type.toLowerCase();
+        chainHtml += '<div class="hash-block">';
+        chainHtml += '<div class="hash-block-hdr"><span class="hash-block-badge '+badgeCls+'">'+e.type+'</span><b style="font-size:12px;">Block #'+e.num+'</b><span style="font-size:10px;color:#555;margin-left:auto;">'+e.timestamp+'</span></div>';
+        chainHtml += '<div class="hash-formula">';
+        chainHtml += '<span class="kw">blockHash</span> = keccak256(<span class="val">prevHash</span> ∥ <span class="val">txData</span> ∥ <span class="val">nonce</span> ∥ <span class="val">timestamp</span>)<br>';
+        chainHtml += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="res">'+(e.blockHash||'0x'+'0'.repeat(64))+'</span><br>';
+        chainHtml += '<span class="kw">prevHash</span>  = <span class="res">'+(e.prevHash||'0x'+'0'.repeat(64))+'</span><br>';
+        if(e.txHash) chainHtml += '<span class="kw">txHash</span>    = <span class="val">'+e.txHash+'</span><br>';
+        if(e.gasUsed&&e.gasUsed!='0') chainHtml += '<span class="kw">gasUsed</span>   = <span class="res">'+Number(e.gasUsed).toLocaleString()+' gas</span>';
+        chainHtml += '</div></div>';
+    });
+    chainHtml += '</div></div>';
+
+    // ── Section C: Smart Contract Math ──────────────────
+    const deployEntry = blockRegistry.find(e=>e.type==='DEPLOY');
+    let scHtml = '<div class="fa-section"><div class="fa-section-title">🚀 Smart Contract — Kalkulasi Bytecode & Address</div>';
+    scHtml += '<div class="hash-formula" style="background:#0e0e18;border-radius:6px;padding:14px;line-height:2;">';
+    scHtml += '<span class="kw">Compiler</span>         = Solidity 0.8.20 (EVM Paris)<br>';
+    scHtml += '<span class="kw">Bytecode Size</span>    = <span class="res">4027 bytes (8054 hex chars)</span><br>';
+    scHtml += '<span class="kw">Constructor</span>      = 0x608060405234801561...<br>';
+    if(deployEntry&&deployEntry.contractAddr){
+        scHtml += '<span class="kw">Contract Address</span> = keccak256(rlp(<span class="val">deployer</span>, <span class="val">nonce</span>))[12:]<br>';
+        scHtml += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="addr">'+deployEntry.contractAddr+'</span><br>';
     }
-    btn.disabled = false; btn.textContent = '🚀 Deploy Kontrak ke Blockchain';
+    if(aliceAddress){
+        scHtml += '<span class="kw">Deployer</span>         = <span class="addr">'+aliceAddress+'</span><br>';
+    }
+    scHtml += '<span class="kw">Functions</span>        = registerDocument() | transferDocument() | getDocument()<br>';
+    scHtml += '<span class="kw">Events</span>           = DocumentRegistered(hash, name, owner) | DocumentTransferred(hash, from, to)';
+    scHtml += '</div></div>';
+
+    // ── Section D: SHA-256 Document Hash ────────────────
+    let hashHtml = '<div class="fa-section"><div class="fa-section-title">🔐 Komputasi Hash Dokumen SHA-256</div>';
+    if(docHashGlobal){
+        hashHtml += '<div class="hash-formula" style="background:#0e0e18;border-radius:6px;padding:14px;line-height:2;">';
+        hashHtml += '<span class="kw">Input</span>      = File: <span class="res">'+(docNameGlobal||'unknown')+'</span><br>';
+        hashHtml += '<span class="kw">Algorithm</span>  = SHA-256 (256-bit output, 64 rounds, 8 working variables)<br>';
+        hashHtml += '<span class="kw">Rounds</span>     = 64 kompresi × 32 operasi bitwise per round<br>';
+        hashHtml += '<span class="kw">Output</span>     = <span class="val">'+docHashGlobal+'</span><br>';
+        hashHtml += '<span class="kw">Size</span>       = <span class="res">256 bit = 32 byte = 64 hex chars</span><br>';
+        hashHtml += '<span class="kw">On-chain key</span>= keccak256(docHash) → Solidity mapping key<br>';
+        hashHtml += '<span class="ok">✓ Hash bersifat deterministik dan tidak dapat direkayasa balik</span>';
+        hashHtml += '</div>';
+    } else {
+        hashHtml += '<div style="color:#555;font-size:12px;padding:12px;background:#0e0e18;border-radius:6px;">Belum ada file yang di-hash. Selesaikan Step 4 untuk melihat kalkulasi.</div>';
+    }
+    hashHtml += '</div>';
+
+    // ── Section E: Gas Accounting ────────────────────────
+    const txBlocks = blockRegistry.filter(e=>e.txHash);
+    let totalGas = 0;
+    let gasHtml = '<div class="fa-section"><div class="fa-section-title">⚡ Akuntansi Gas — Biaya Transaksi</div>';
+    if(txBlocks.length){
+        const gasPrice = 1; // Gwei
+        gasHtml += '<table class="math-table"><thead><tr><th>Operasi</th><th style="text-align:right;">Gas Used</th><th style="text-align:right;">Gas Price</th><th style="text-align:right;">Biaya (ETH)</th></tr></thead><tbody>';
+        txBlocks.forEach(e=>{
+            const g = parseInt(e.gasUsed)||0;
+            totalGas += g;
+            const cost = (g * gasPrice / 1e9).toFixed(8);
+            gasHtml += '<tr><td class="c1">'+(e.icon||'')+'  '+e.type+'</td><td class="c2">'+g.toLocaleString()+'</td><td class="c3">'+gasPrice+' Gwei</td><td class="c4">'+cost+' ETH</td></tr>';
+        });
+        const totalCost = (totalGas * gasPrice / 1e9).toFixed(8);
+        gasHtml += '<tr><td>Total</td><td class="c2">'+totalGas.toLocaleString()+'</td><td class="c3"></td><td class="c4">'+totalCost+' ETH</td></tr>';
+        gasHtml += '</tbody></table>';
+        if(SIM_MODE) gasHtml += '<div style="font-size:10px;color:#555;margin-top:6px;">* Gas adalah simulasi — tidak ada ETH nyata yang terpakai.</div>';
+    } else {
+        gasHtml += '<div style="color:#555;font-size:12px;padding:12px;background:#0e0e18;border-radius:6px;">Belum ada transaksi. Selesaikan simulasi untuk melihat akumulasi gas.</div>';
+    }
+    gasHtml += '</div>';
+
+    // ── Section F: State Transitions ────────────────────
+    let stateHtml = '<div class="fa-section"><div class="fa-section-title">🔄 Transisi State Kepemilikan Dokumen</div>';
+    if(docHashGlobal&&aliceAddress){
+        stateHtml += '<div class="hash-formula" style="background:#0e0e18;border-radius:6px;padding:12px;margin-bottom:10px;">';
+        stateHtml += '<span class="kw">Mapping</span>: documents[<span class="val">docHash</span>] → Document{owner, name, timestamp}<br>';
+        stateHtml += '<span class="kw">Storage</span>: EVM Slot — keccak256(key ∥ mappingSlot)';
+        stateHtml += '</div>';
+        const regEntry = blockRegistry.find(e=>e.type==='REGISTER');
+        const txEntry  = blockRegistry.find(e=>e.type==='TRANSFER');
+        const verEntry = blockRegistry.find(e=>e.type==='VERIFY');
+        const rows = [];
+        rows.push({label:'Inisialisasi', val:'owner = address(0) (belum terdaftar)', color:'#555'});
+        if(regEntry) rows.push({label:'Block #'+regEntry.num+' REGISTER', val:'owner ← '+aliceAddress+' (Alice)', color:'#66aaff'});
+        if(txEntry)  rows.push({label:'Block #'+txEntry.num+' TRANSFER',  val:'owner ← '+(txEntry.to||bobAddress||'Bob'), color:'#ffaa44'});
+        if(verEntry) rows.push({label:'Block #'+verEntry.num+' VERIFY',   val:'✅ owner = '+(verEntry.owner||txEntry&&txEntry.to||bobAddress||'Bob')+' — Terverifikasi', color:'#28a745'});
+        rows.forEach((r,i)=>{
+            stateHtml += '<div class="state-row"><span class="state-arrow">'+(i===0?'◉':'↓')+'</span><span class="state-key">'+r.label+'</span><span class="state-val" style="color:'+r.color+';">'+r.val+'</span></div>';
+        });
+    } else {
+        stateHtml += '<div style="color:#555;font-size:12px;padding:12px;background:#0e0e18;border-radius:6px;">Selesaikan seluruh alur untuk melihat transisi kepemilikan.</div>';
+    }
+    stateHtml += '</div>';
+
+    c.innerHTML = pipeHtml + chainHtml + scHtml + hashHtml + gasHtml + stateHtml;
 }
 
-// ============================================================
-// STEP 3 — HASH FILE
-// ============================================================
-async function generateHash() {
-    const file = document.getElementById('fileInput').files[0];
-    if (!file) return;
-    document.getElementById('fileLbl').textContent = '📄 '+file.name+' ('+(file.size/1024).toFixed(1)+' KB)';
-    document.getElementById('docName').value = file.name;
-    setStat(3,'Menerapkan SHA-256...','');
-    log('File dipilih: '+file.name+' ('+(file.size/1024).toFixed(1)+' KB)','info');
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        const hashBuf = await crypto.subtle.digest('SHA-256', e.target.result);
-        const hex = '0x'+Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-        document.getElementById('docHash').value    = hex;
-        document.getElementById('regHash').value    = hex;
-        document.getElementById('txHash').value     = hex;
-        document.getElementById('verifyHash').value = hex;
-        setDone(3); setActive(4);
-        setStat(3,'Hash berhasil dibuat.','ok');
-        setStat(4,'Siap daftarkan ke blockchain.','ok');
-        document.getElementById('btnReg').disabled = false;
-        log('SHA-256: '+hex.substring(0,22)+'...','hash');
+// ── BLOCK DETAIL MODAL ─────────────────────────────────────
+function openBlockModal(idx){
+    const e=blockRegistry[idx];if(!e)return;
+    const icons={GENESIS:'🏛️',DEPLOY:'🚀',REGISTER:'📋',TRANSFER:'🔄',VERIFY:'✅'};
+    document.getElementById('blockModalIcon').textContent=icons[e.type]||'📦';
+    document.getElementById('blockModalTitle').textContent='Block #'+e.num+' — '+e.type;
+    const row=(k,v,cls)=>'<tr><td>'+k+'</td><td><span class="'+(cls||'hl')+'">'+v+'</span></td></tr>';
+    const rowPlain=(k,v)=>'<tr><td>'+k+'</td><td>'+v+'</td></tr>';
+    const sec=(t)=>'<tr><td colspan="2" class="blk-section">'+t+'</td></tr>';
+    let html='<span class="block-badge '+e.type.toLowerCase()+'">'+e.type+'</span>';
+    html+='<table class="blk-table">';
+    html+=sec('⛓️ Chain Attributes');
+    html+=row('Block Number','#'+e.num);
+    html+=row('Block Hash',e.blockHash,'hl-hash');
+    html+=row('Previous Hash',e.prevHash,'hl-hash');
+    html+=rowPlain('Timestamp',e.timestamp);
+    html+=rowPlain('Nonce',e.nonce);
+    html+=rowPlain('Difficulty',e.difficulty);
+    html+=rowPlain('Block Size',e.size);
+    html+=rowPlain('Tx Count',e.txCount);
+    html+=sec('⚡ Execution');
+    html+=rowPlain('Gas Used',Number(e.gasUsed).toLocaleString());
+    html+=rowPlain('Gas Limit',e.gasLimit);
+    html+=row('Validator / Miner',e.miner||aliceAddress||'0x000...','hl-addr');
+    if(e.txHash){
+        html+=sec('📝 Transaction');
+        html+=row('Tx Hash',e.txHash,'hl-hash');
+        if(e.from)  html+=row('From',e.from,'hl-addr');
+        if(e.to)    html+=row('To',e.to,'hl-addr');
+        if(e.contractAddr) html+=row('Contract Address',e.contractAddr,'hl');
+    }
+    if(e.docHash||e.docName){
+        html+=sec('📄 Document Data');
+        if(e.docName) html+=rowPlain('Document Name',e.docName);
+        if(e.docHash) html+=row('Document Hash (SHA-256)',e.docHash,'hl-hash');
+        if(e.type==='TRANSFER'&&e.to) html+=row('New Owner (Bob)',e.to,'hl-ok');
+        if(e.type==='VERIFY'&&e.owner) html+=row('Verified Owner',e.owner,'hl-ok');
+    }
+    html+='</table>';
+    document.getElementById('blockModalBody').innerHTML=html;
+    document.getElementById('blockModal').classList.add('open');
+}
+function closeBlockModal(){document.getElementById('blockModal').classList.remove('open');}
+document.addEventListener('click',e=>{if(e.target.id==='ledgerModal')closeLedgerModal();if(e.target.id==='blockModal')closeBlockModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLedgerModal();closeBlockModal();}});
+
+// ── MODE TOGGLE ────────────────────────────────────────────
+function setMode(mode){
+    SIM_MODE=(mode==='sim');
+    document.getElementById('btnSimMode').className=SIM_MODE?'active':'';
+    document.getElementById('btnRealMode').className=SIM_MODE?'':'active';
+    document.getElementById('panelSim').style.display=SIM_MODE?'block':'none';
+    document.getElementById('panelReal').style.display=SIM_MODE?'none':'block';
+    document.getElementById('modeBadge').textContent=SIM_MODE?'🎮 Sim Mode':'🦊 Real Mode';
+    document.getElementById('modeBadge').className=SIM_MODE?'badge sim-active':'badge';
+    document.getElementById('c0').className='step-card active';
+    log('Mode: '+(SIM_MODE?'Simulasi (Dummy ETH)':'Nyata (MetaMask)'),'sim');
+}
+
+// ── SIMULATION START ───────────────────────────────────────
+async function startSimulation(){
+    const sv=document.getElementById('simSender').value.trim();
+    const rv=document.getElementById('simReceiver').value.trim();
+    if(!ethers.isAddress(sv)){setStat(0,'Alamat Alice tidak valid!','err');return;}
+    if(!ethers.isAddress(rv)){setStat(0,'Alamat Bob tidak valid!','err');return;}
+    if(sv.toLowerCase()===rv.toLowerCase()){setStat(0,'Alice dan Bob tidak boleh sama!','err');return;}
+    aliceAddress=sv;bobAddress=rv;
+    document.getElementById('walletBadge').textContent='🎮 '+aliceAddress.substring(0,6)+'...'+aliceAddress.slice(-4);
+    document.getElementById('networkBadge').textContent='🟢 Chain 1337 (Sim)';
+    document.getElementById('ciNet').textContent='Chain ID: 1337 (Simulated Ganache)';
+    document.getElementById('ciDeployer').textContent=aliceAddress;
+    document.getElementById('ownerAddr').value=aliceAddress;
+    document.getElementById('receiverAddr').value=bobAddress;
+    document.getElementById('aliceNodeAddr').textContent=aliceAddress;
+    document.getElementById('bobNodeAddr').textContent=bobAddress;
+    setDone(0);setActive(1);
+    setStat(0,'Simulasi dimulai. Alice: '+aliceAddress.substring(0,10)+'...','ok');
+    document.getElementById('policySelect').disabled=false;
+    document.getElementById('nodeCount').disabled=false;
+    document.getElementById('btnInit').disabled=false;
+    log('=== MODE SIMULASI (DUMMY ETHEREUM) ===','sim');
+    log('Alice (Pengirim) : '+aliceAddress,'addr');
+    log('Bob   (Penerima) : '+bobAddress,'addr');
+    log('Balance Alice: 100 ETH | Balance Bob: 100 ETH (dummy)','sim');
+    log('Semua transaksi adalah simulasi — tidak ada gas nyata.','sim');
+}
+
+// ── METAMASK ───────────────────────────────────────────────
+async function connectWallet(){
+    if(!window.ethereum){alert('MetaMask tidak terdeteksi!');return;}
+    const btn=document.getElementById('btnConn');btn.disabled=true;btn.textContent='Menghubungkan...';
+    try{
+        provider=new ethers.BrowserProvider(window.ethereum,'any');
+        await provider.send('eth_requestAccounts',[]);
+        signer=await provider.getSigner();aliceAddress=await signer.getAddress();
+        const network=await provider.getNetwork();const chainId=network.chainId.toString();
+        const bal=parseFloat(ethers.formatEther(await provider.getBalance(aliceAddress))).toFixed(4);
+        document.getElementById('walletBadge').textContent='🦊 '+aliceAddress.substring(0,6)+'...'+aliceAddress.slice(-4);
+        document.getElementById('networkBadge').textContent='🟢 Chain '+chainId;
+        document.getElementById('ciNet').textContent='Chain ID: '+chainId;
+        document.getElementById('ciDeployer').textContent=aliceAddress;
+        document.getElementById('ownerAddr').value=aliceAddress;
+        document.getElementById('aliceNodeAddr').textContent=aliceAddress;
+        setDone(0);setActive(1);
+        setStat(0,'Terhubung: '+aliceAddress+' | Balance: '+bal+' ETH','ok');
+        document.getElementById('policySelect').disabled=false;document.getElementById('nodeCount').disabled=false;document.getElementById('btnInit').disabled=false;
+        log('MetaMask terhubung. Alice: '+aliceAddress,'addr');
+        log('Chain ID: '+chainId+' | Balance: '+bal+' ETH','info');
+        window.ethereum.on('accountsChanged',()=>location.reload());
+        provider.on('network',(n,o)=>{if(o)location.reload();});
+    }catch(e){btn.disabled=false;btn.textContent='🦊 Hubungkan MetaMask';setStat(0,'Gagal: '+(e.message||e),'err');log('ERROR: '+(e.message||e),'err');}
+}
+
+// ── STEP 1: NETWORK ────────────────────────────────────────
+function initNetwork(){
+    currentPolicy=document.getElementById('policySelect').value;
+    bringNodesOnline();setDone(1);setActive(2);
+    setStat(1,'Jaringan aktif. Konsensus: '+currentPolicy,'ok');
+    document.getElementById('btnDeploy').disabled=false;
+    setStat(2,'Siap deploy Smart Contract.','ok');
+    log('─'.repeat(45),'info');
+    log('Jaringan P2P diinisialisasi. Konsensus: '+currentPolicy,'ok');
+    log('Enkripsi: SHA-256 | Hash EVM: Keccak-256 (256-bit)','info');
+    log('Block time: ~2s | Gas limit: 30,000,000 per block','info');
+    log('4 Node validator online dan siap.','ok');
+}
+
+// ── STEP 2: DEPLOY ─────────────────────────────────────────
+async function deployContract(){
+    const btn=document.getElementById('btnDeploy');btn.disabled=true;
+    if(SIM_MODE){
+        btn.textContent='🚀 Deploying... (simulasi)';setStat(2,'Menyimulasikan deploy...','');
+        log('Deploy SecureDocumentTransfer.sol via ContractFactory...','warn');
+        syncNodes(3000);
+        await fakeDelay(800);log('Menghitung bytecode hash (keccak256)...','sim');
+        await fakeDelay(600);log('Menyebarkan bytecode ke semua validator node...','sim');
+        await fakeDelay(1000);
+        CONTRACT_ADDRESS=fakeAddress();
+        const simBlock=nextSimBlock(),simTx=fakeTxHash(),simGas=fakeGas();
+        document.getElementById('contractBadge').textContent='📄 '+CONTRACT_ADDRESS.substring(0,8)+'...';
+        document.getElementById('ciStat').textContent='✅ Deployed (Sim)';document.getElementById('ciStat').style.color='#b57bff';
+        document.getElementById('ciAddr').textContent=CONTRACT_ADDRESS;
+        document.getElementById('ciBlock').textContent=simBlock;
+        document.getElementById('ciGas').textContent=simGas+' gas (sim)';
+        document.getElementById('deployAddrRow').style.display='block';
+        document.getElementById('deployAddrDisplay').value=CONTRACT_ADDRESS;
+        setDone(2);setActive(3);
+        setStat(2,'[SIM] Deploy berhasil! '+CONTRACT_ADDRESS.substring(0,18)+'...','ok');
+        setStat(3,'Silakan upload dokumen Anda.','ok');
+        document.getElementById('fileInput').disabled=false;
+        log('✅ Kontrak berhasil di-deploy!','ok');
+        log('Alamat Kontrak : '+CONTRACT_ADDRESS,'addr');
+        log('Tx Hash        : '+simTx,'hash');
+        log('Block #'+simBlock+' | Gas: '+simGas+' | Nonce: '+Math.floor(Math.random()*9999),'info');
+        addBlock('DEPLOY','SecureDocTransfer','B#'+simBlock,{txHash:simTx,blockNum:simBlock,gasUsed:simGas,contractAddr:CONTRACT_ADDRESS,from:aliceAddress,miner:aliceAddress});
+    }else{
+        btn.textContent='🚀 Deploying... (MetaMask)';setStat(2,'Mengirim transaksi deploy...','');
+        try{
+            log('Deploy via ContractFactory...','warn');syncNodes(8000);
+            const factory=new ethers.ContractFactory(CONTRACT_ABI,CONTRACT_BYTECODE,signer);
+            const deployTx=await factory.deploy();const txHash=deployTx.deploymentTransaction().hash;
+            log('Deploy tx: '+txHash,'hash');setStat(2,'Menunggu konfirmasi blok...','');
+            const deployed=await deployTx.waitForDeployment();
+            CONTRACT_ADDRESS=await deployed.getAddress();
+            contract=new ethers.Contract(CONTRACT_ADDRESS,CONTRACT_ABI,signer);
+            const receipt=await provider.getTransactionReceipt(txHash);
+            document.getElementById('contractBadge').textContent='📄 '+CONTRACT_ADDRESS.substring(0,8)+'...';
+            document.getElementById('ciStat').textContent='✅ Deployed';document.getElementById('ciStat').style.color='#28a745';
+            document.getElementById('ciAddr').textContent=CONTRACT_ADDRESS;
+            document.getElementById('ciBlock').textContent=receipt.blockNumber;
+            document.getElementById('ciGas').textContent=receipt.gasUsed.toString();
+            document.getElementById('deployAddrRow').style.display='block';
+            document.getElementById('deployAddrDisplay').value=CONTRACT_ADDRESS;
+            setDone(2);setActive(3);setStat(2,'Deploy berhasil!','ok');setStat(3,'Silakan upload dokumen.','ok');
+            document.getElementById('fileInput').disabled=false;
+            log('✅ Deployed! Alamat: '+CONTRACT_ADDRESS,'ok');
+            log('Block #'+receipt.blockNumber+' | Gas: '+receipt.gasUsed.toString(),'info');
+            addBlock('DEPLOY','SecureDocTransfer','B#'+receipt.blockNumber,{txHash:receipt.hash,blockNum:receipt.blockNumber,gasUsed:receipt.gasUsed.toString(),contractAddr:CONTRACT_ADDRESS,from:aliceAddress,miner:aliceAddress});
+        }catch(e){setStat(2,'Gagal: '+(e.reason||e.message),'err');log('ERROR: '+(e.reason||e.message),'err');}
+    }
+    btn.disabled=false;btn.textContent='🚀 Deploy Kontrak ke Blockchain';
+}
+
+// ── STEP 3: HASH ───────────────────────────────────────────
+async function generateHash(){
+    const file=document.getElementById('fileInput').files[0];if(!file)return;
+    document.getElementById('fileLbl').textContent='📄 '+file.name+' ('+(file.size/1024).toFixed(1)+' KB)';
+    document.getElementById('docName').value=file.name;setStat(3,'Menerapkan SHA-256...','');
+    log('File: '+file.name+' ('+(file.size/1024).toFixed(1)+' KB, '+file.size+' bytes)','info');
+    const reader=new FileReader();
+    reader.onload=async(e)=>{
+        const hashBuf=await crypto.subtle.digest('SHA-256',e.target.result);
+        const hex='0x'+Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+        docHashGlobal=hex;docNameGlobal=file.name;
+        document.getElementById('docHash').value=hex;
+        document.getElementById('regHash').value=hex;
+        document.getElementById('txHash').value=hex;
+        document.getElementById('verifyHash').value=hex;
+        setDone(3);setActive(4);setStat(3,'Hash SHA-256 berhasil dibuat.','ok');setStat(4,'Siap daftarkan ke blockchain.','ok');
+        document.getElementById('btnReg').disabled=false;
+        log('SHA-256 Output : '+hex,'hash');
+        log('Panjang       : 256 bit = 32 byte = 64 hex chars','info');
         log('Dokumen siap untuk didaftarkan ke Smart Contract.','ok');
     };
     reader.readAsArrayBuffer(file);
 }
 
-// ============================================================
-// STEP 4 — REGISTER
-// ============================================================
-async function registerDocument() {
-    const btn  = document.getElementById('btnReg');
-    btn.disabled = true;
-    const name = document.getElementById('docName').value;
-    const hash = document.getElementById('regHash').value;
-
-    if (SIM_MODE) {
-        btn.textContent = '⏳ Mendaftarkan... (simulasi)';
-        setStat(4,'Menyimulasikan registrasi...','');
-        log('Mendaftarkan dokumen: '+name,'warn');
-        syncNodes(3000);
-        await fakeDelay(600);
-        log('Menyebarkan transaksi ke mempool...','sim');
-        await fakeDelay(700);
-        log('Validator menandatangani blok...','sim');
+// ── STEP 4: REGISTER ───────────────────────────────────────
+async function registerDocument(){
+    const btn=document.getElementById('btnReg');btn.disabled=true;
+    const name=document.getElementById('docName').value,hash=document.getElementById('regHash').value;
+    if(SIM_MODE){
+        btn.textContent='⏳ Mendaftarkan... (sim)';setStat(4,'Menyimulasikan registrasi...','');
+        log('Mendaftarkan dokumen: '+name,'warn');syncNodes(3000);
+        await fakeDelay(600);log('Mengirim ke mempool...','sim');
+        await fakeDelay(700);log('Validator menandatangani blok...','sim');
         await fakeDelay(800);
-
-        const simBlock = nextSimBlock();
-        const simTx    = fakeTxHash();
-        const simGas   = fakeGas();
-        simDocs.set(hash, {
-            name, owner: aliceAddress,
-            timestamp: Math.floor(Date.now()/1000),
-            block: simBlock, tx: simTx
-        });
-
-        setDone(4); setActive(5);
-        setStat(4,'[SIM] Terdaftar di Block #'+simBlock+'!','ok');
-        setStat(5,'Siap transfer ke penerima.','ok');
-        document.getElementById('btnTx').disabled     = false;
-        document.getElementById('btnVerify').disabled = false;
-
-        log('✅ [SIM] Dokumen terdaftar! Block #'+simBlock,'ok');
-        log('Tx Hash: '+simTx,'hash');
-        log('Pemilik: '+aliceAddress,'addr');
-        log('Gas: '+simGas+' (simulated)','info');
-        addBlock('REGISTER', name, 'Alice');
-
-    } else {
-        btn.textContent = '⏳ Mendaftarkan... (konfirmasi MetaMask)';
-        setStat(4,'Mengirim transaksi registrasi...','');
-        try {
-            log('Mendaftarkan dokumen: '+name,'warn');
-            syncNodes(5000);
-            const tx = await contract.registerDocument(hash, name);
-            log('Tx: '+tx.hash,'hash');
-            setStat(4,'Tx terkirim. Menunggu blok...','');
-            const receipt = await tx.wait();
-            setDone(4); setActive(5);
-            setStat(4,'Terdaftar di Block #'+receipt.blockNumber+'!','ok');
-            setStat(5,'Siap transfer ke penerima.','ok');
-            document.getElementById('btnTx').disabled     = false;
-            document.getElementById('btnVerify').disabled = false;
-            log('✅ Dokumen terdaftar! Block #'+receipt.blockNumber,'ok');
-            log('Pemilik: '+aliceAddress,'addr');
-            addBlock('REGISTER', name, 'Alice');
-        } catch(e) {
-            setStat(4,'Gagal: '+(e.reason||e.message),'err');
-            log('ERROR: '+(e.reason||e.message),'err');
-        }
+        const simBlock=nextSimBlock(),simTx=fakeTxHash(),simGas=fakeGas();
+        simDocs.set(hash,{name,owner:aliceAddress,timestamp:Math.floor(Date.now()/1000),block:simBlock,tx:simTx});
+        setDone(4);setActive(5);setStat(4,'[SIM] Terdaftar di Block #'+simBlock+'!','ok');setStat(5,'Siap transfer ke penerima.','ok');
+        document.getElementById('btnTx').disabled=false;document.getElementById('btnVerify').disabled=false;
+        log('✅ Dokumen terdaftar! Block #'+simBlock,'ok');
+        log('Tx Hash   : '+simTx,'hash');log('Pemilik   : '+aliceAddress+' (Alice)','addr');log('Gas       : '+simGas,'info');
+        addBlock('REGISTER',name,'Alice',{txHash:simTx,blockNum:simBlock,gasUsed:simGas,docName:name,docHash:hash,from:aliceAddress,miner:aliceAddress});
+    }else{
+        btn.textContent='⏳ Mendaftarkan... (MetaMask)';setStat(4,'Mengirim transaksi registrasi...','');
+        try{
+            log('Mendaftarkan: '+name,'warn');syncNodes(5000);
+            const tx=await contract.registerDocument(hash,name);log('Tx: '+tx.hash,'hash');
+            setStat(4,'Menunggu blok...','');const receipt=await tx.wait();
+            setDone(4);setActive(5);setStat(4,'Terdaftar di Block #'+receipt.blockNumber+'!','ok');setStat(5,'Siap transfer.','ok');
+            document.getElementById('btnTx').disabled=false;document.getElementById('btnVerify').disabled=false;
+            log('✅ Dokumen terdaftar! Block #'+receipt.blockNumber,'ok');log('Pemilik: '+aliceAddress,'addr');
+            addBlock('REGISTER',name,'Alice',{txHash:receipt.hash,blockNum:receipt.blockNumber,gasUsed:receipt.gasUsed.toString(),docName:name,docHash:hash,from:aliceAddress,miner:aliceAddress});
+        }catch(e){setStat(4,'Gagal: '+(e.reason||e.message),'err');log('ERROR: '+(e.reason||e.message),'err');}
     }
-    btn.disabled = false; btn.textContent = '📋 Amankan Dokumen ke Blockchain';
+    btn.disabled=false;btn.textContent='📋 Amankan Dokumen ke Blockchain';
 }
 
-// ============================================================
-// STEP 5 — TRANSFER
-// ============================================================
-async function transferDocument() {
-    const btn      = document.getElementById('btnTx');
-    const receiver = document.getElementById('receiverAddr').value.trim();
-    const hash     = document.getElementById('txHash').value;
-
-    if (!ethers.isAddress(receiver)) { alert('Alamat penerima tidak valid!'); return; }
-    btn.disabled = true;
-
-    if (SIM_MODE) {
-        btn.textContent = '⏳ Mentransfer... (simulasi)';
-        setStat(5,'Menyimulasikan transfer...','');
-        log('Transfer dokumen ke Bob: '+receiver,'warn');
-        syncNodes(3000);
-        await fakeDelay(600);
-        log('Memvalidasi kepemilikan Alice...','sim');
-        await fakeDelay(500);
-        log('Mengupdate state kepemilikan di semua node...','sim');
+// ── STEP 5: TRANSFER ───────────────────────────────────────
+async function transferDocument(){
+    const btn=document.getElementById('btnTx');
+    const receiver=document.getElementById('receiverAddr').value.trim();
+    const hash=document.getElementById('txHash').value;
+    if(!ethers.isAddress(receiver)){alert('Alamat penerima tidak valid!');return;}
+    btn.disabled=true;
+    if(SIM_MODE){
+        btn.textContent='⏳ Mentransfer... (sim)';setStat(5,'Menyimulasikan transfer...','');
+        log('Transfer ke Bob: '+receiver,'warn');syncNodes(3000);
+        await fakeDelay(600);log('Memvalidasi kepemilikan Alice...','sim');
+        await fakeDelay(500);log('Mengupdate state owner di semua node...','sim');
         await fakeDelay(900);
-
-        const simBlock = nextSimBlock();
-        const simTx    = fakeTxHash();
-        const simGas   = fakeGas();
-
-        // update simulated ledger
-        if (simDocs.has(hash)) {
-            simDocs.get(hash).owner = receiver;
-            simDocs.get(hash).transferBlock = simBlock;
-            simDocs.get(hash).transferTx    = simTx;
-        }
-
-        const n3 = document.getElementById('n3');
-        n3.innerHTML = '<span class="icon">👨</span>Bob<br><small>Menerima ✓</small>';
-        n3.className = 'node receiver';
-        document.getElementById('bobNodeAddr').textContent = receiver;
-
-        setDone(5); setActive(6);
-        setStat(5,'[SIM] Transfer berhasil! Block #'+simBlock,'ok');
-        setStat(6,'Siap verifikasi kepemilikan baru.','ok');
-
-        log('✅ [SIM] Transfer berhasil! Block #'+simBlock,'ok');
-        log('Tx Hash: '+simTx,'hash');
-        log('Dari  (Alice): '+aliceAddress,'addr');
-        log('Kepada (Bob) : '+receiver,'addr');
-        log('Gas: '+simGas+' (simulated)','info');
-        log('Dokumen kini milik Bob secara PERMANEN di ledger simulasi.','ok');
-        addBlock('TRANSFER', hash.substring(0,10), 'Bob');
-
-    } else {
-        btn.textContent = '⏳ Mentransfer... (konfirmasi MetaMask)';
-        setStat(5,'Mengirim transaksi transfer...','');
-        try {
-            log('Transfer ke: '+receiver,'warn');
-            syncNodes(5000);
-            const tx = await contract.transferDocument(hash, receiver);
-            log('Tx: '+tx.hash,'hash');
-            setStat(5,'Tx terkirim. Menunggu konfirmasi...','');
-            const receipt = await tx.wait();
-            const n3 = document.getElementById('n3');
-            n3.innerHTML = '<span class="icon">👨</span>Bob<br><small>Menerima ✓</small>';
-            n3.className = 'node receiver';
-            document.getElementById('bobNodeAddr').textContent = receiver;
-            setDone(5); setActive(6);
-            setStat(5,'Transfer berhasil! Block #'+receipt.blockNumber,'ok');
-            setStat(6,'Siap verifikasi kepemilikan baru.','ok');
-            log('✅ Transfer berhasil! Block #'+receipt.blockNumber,'ok');
-            log('Dari: '+aliceAddress,'addr');
-            log('Kepada: '+receiver,'addr');
-            addBlock('TRANSFER', hash.substring(0,10), 'Bob');
-        } catch(e) {
-            setStat(5,'Gagal: '+(e.reason||e.message),'err');
-            log('ERROR: '+(e.reason||e.message),'err');
-        }
+        const simBlock=nextSimBlock(),simTx=fakeTxHash(),simGas=fakeGas();
+        if(simDocs.has(hash)){const d=simDocs.get(hash);d.owner=receiver;d.transferBlock=simBlock;d.transferTx=simTx;}
+        const n3=document.getElementById('n3');n3.innerHTML='<span class="icon">👨</span>Bob<br><small>Menerima ✓</small>';n3.className='node receiver';
+        document.getElementById('bobNodeAddr').textContent=receiver;
+        setDone(5);setActive(6);setStat(5,'[SIM] Transfer berhasil! Block #'+simBlock,'ok');setStat(6,'Siap verifikasi.','ok');
+        log('✅ Transfer berhasil! Block #'+simBlock,'ok');log('Tx Hash : '+simTx,'hash');
+        log('Dari    : '+aliceAddress+' (Alice)','addr');log('Kepada  : '+receiver+' (Bob)','addr');
+        log('Gas     : '+simGas+' | Dokumen kini milik Bob.','info');
+        addBlock('TRANSFER',hash.substring(0,10),'Bob',{txHash:simTx,blockNum:simBlock,gasUsed:simGas,docHash:hash,from:aliceAddress,to:receiver,miner:aliceAddress});
+    }else{
+        btn.textContent='⏳ Mentransfer... (MetaMask)';setStat(5,'Mengirim transaksi transfer...','');
+        try{
+            log('Transfer ke: '+receiver,'warn');syncNodes(5000);
+            const tx=await contract.transferDocument(hash,receiver);log('Tx: '+tx.hash,'hash');
+            setStat(5,'Menunggu konfirmasi...','');const receipt=await tx.wait();
+            const n3=document.getElementById('n3');n3.innerHTML='<span class="icon">👨</span>Bob<br><small>Menerima ✓</small>';n3.className='node receiver';
+            document.getElementById('bobNodeAddr').textContent=receiver;
+            setDone(5);setActive(6);setStat(5,'Transfer berhasil! Block #'+receipt.blockNumber,'ok');setStat(6,'Siap verifikasi.','ok');
+            log('✅ Transfer berhasil! Block #'+receipt.blockNumber,'ok');log('Dari: '+aliceAddress,'addr');log('Kepada: '+receiver,'addr');
+            addBlock('TRANSFER',hash.substring(0,10),'Bob',{txHash:receipt.hash,blockNum:receipt.blockNumber,gasUsed:receipt.gasUsed.toString(),docHash:hash,from:aliceAddress,to:receiver,miner:aliceAddress});
+        }catch(e){setStat(5,'Gagal: '+(e.reason||e.message),'err');log('ERROR: '+(e.reason||e.message),'err');}
     }
-    btn.disabled = false; btn.textContent = '🔄 Kirim Hak Dokumen ke Penerima';
+    btn.disabled=false;btn.textContent='🔄 Kirim Hak Dokumen ke Penerima';
 }
 
-// ============================================================
-// STEP 6 — VERIFY
-// ============================================================
-async function verifyDocument() {
-    const hash = document.getElementById('verifyHash').value.trim();
-    if (!hash) { alert('Masukkan hash dokumen!'); return; }
-    const btn = document.getElementById('btnVerify');
-    btn.disabled = true; btn.textContent = '🔍 Memverifikasi...';
-
-    try {
+// ── STEP 6: VERIFY ─────────────────────────────────────────
+async function verifyDocument(){
+    const hash=document.getElementById('verifyHash').value.trim();
+    if(!hash){alert('Masukkan hash dokumen!');return;}
+    const btn=document.getElementById('btnVerify');btn.disabled=true;btn.textContent='🔍 Memverifikasi...';
+    try{
         log('Memverifikasi: '+hash.substring(0,22)+'...','warn');
-
-        let docName, owner, dateStr;
-
-        if (SIM_MODE) {
-            await fakeDelay(600);
-            const doc = simDocs.get(hash);
-            if (!doc) throw new Error('Dokumen tidak ditemukan di ledger simulasi.');
-            docName = doc.name;
-            owner   = doc.owner;
-            dateStr = new Date(doc.timestamp*1000).toLocaleString('id-ID');
+        let docName,owner,dateStr;
+        if(SIM_MODE){
+            await fakeDelay(600);const doc=simDocs.get(hash);
+            if(!doc)throw new Error('Dokumen tidak ditemukan di ledger simulasi.');
+            docName=doc.name;owner=doc.owner;dateStr=new Date(doc.timestamp*1000).toLocaleString('id-ID');
             log('[SIM] Membaca state dari in-memory ledger...','sim');
-        } else {
-            const [dn, ow, ts_] = await contract.getDocument(hash);
-            docName = dn; owner = ow;
-            dateStr = new Date(Number(ts_)*1000).toLocaleString('id-ID');
+        }else{
+            const[dn,ow,ts_]=await contract.getDocument(hash);
+            docName=dn;owner=ow;dateStr=new Date(Number(ts_)*1000).toLocaleString('id-ID');
         }
-
-        document.getElementById('vName').textContent  = docName;
-        document.getElementById('vOwner').textContent = owner;
-        document.getElementById('vTime').textContent  = dateStr;
-
-        const isAlice = owner.toLowerCase() === aliceAddress.toLowerCase();
-        const isBob   = bobAddress && owner.toLowerCase() === bobAddress.toLowerCase();
-        const ownerLabel = isAlice ? '👩 Alice (Pengirim)' : isBob ? '👨 Bob (Penerima)' : '🔑 '+owner.substring(0,12)+'...';
-        document.getElementById('vStat').textContent  = '✅ TERVERIFIKASI — Pemilik: '+ownerLabel;
-        document.getElementById('verifyResult').style.display = 'block';
-        setDone(6);
-        setStat(6,'Pemilik sah: '+ownerLabel,'ok');
-
-        log('✅ VERIFIKASI SUKSES','ok');
-        log('Nama: '+docName,'info');
-        log('Pemilik sah: '+owner,'addr');
-        log('Waktu daftar: '+dateStr,'info');
-        addBlock('VERIFY', docName, owner.substring(0,8));
-
-    } catch(e) {
-        setStat(6,'Gagal: '+(e.reason||e.message),'err');
-        log('ERROR verifikasi: '+(e.reason||e.message),'err');
-    } finally {
-        btn.disabled = false; btn.textContent = '🔍 Verifikasi di Blockchain';
-    }
+        document.getElementById('vName').textContent=docName;
+        document.getElementById('vOwner').textContent=owner;
+        document.getElementById('vTime').textContent=dateStr;
+        const isAlice=aliceAddress&&owner.toLowerCase()===aliceAddress.toLowerCase();
+        const isBob=bobAddress&&owner.toLowerCase()===bobAddress.toLowerCase();
+        const ownerLabel=isAlice?'👩 Alice (Pengirim)':isBob?'👨 Bob (Penerima)':'🔑 '+owner.substring(0,12)+'...';
+        document.getElementById('vStat').textContent='✅ TERVERIFIKASI — Pemilik: '+ownerLabel;
+        document.getElementById('verifyResult').style.display='block';
+        setDone(6);setStat(6,'Pemilik sah: '+ownerLabel,'ok');
+        log('✅ VERIFIKASI SUKSES','ok');log('Nama    : '+docName,'info');
+        log('Pemilik : '+owner,'addr');log('Waktu   : '+dateStr,'info');
+        addBlock('VERIFY',docName,owner.substring(0,8),{docHash:hash,docName,owner,timestamp:dateStr});
+    }catch(e){setStat(6,'Gagal: '+(e.reason||e.message),'err');log('ERROR: '+(e.reason||e.message),'err');}
+    finally{btn.disabled=false;btn.textContent='🔍 Verifikasi di Blockchain';}
 }
 </script>
 </body>

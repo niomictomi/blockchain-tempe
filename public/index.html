@@ -45,12 +45,40 @@
         font-style: italic;
         color: #555;
       }
+
+      .button {
+        width: 200px;
+        padding: 10px;
+        margin: 5px 0 15px 0;
+        box-sizing: border-box;
+        underline: none;
+        text-decoration: none;
+      }
+      .button {
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .button:hover {
+        background: #0056b3;
+      }
     </style>
     <!-- Menggunakan Ethers.js v6 via Lokal -->
     <script src="./ethers.umd.min.js"></script>
   </head>
   <body>
     <h2>Simulasi Transfer Dokumen Aman via Blockchain</h2>
+
+     <div class="section">
+      <h3>Fitur</h3>
+      <a class="button" href="/public/dashboard.html" id="connectBtn" style="text-decoration: none; text-align: center; display: block;">
+        Dashboard Simulasi Transfer Dokumen
+      </a>
+      <p>Alamat Akun: <span id="walletAddress">Belum Terhubung</span></p>
+    </div>
+
 
     <!-- 1. CONNECT WALLET -->
     <div class="section">

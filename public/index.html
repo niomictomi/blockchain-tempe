@@ -138,13 +138,19 @@
         try {
           provider = new ethers.BrowserProvider(window.ethereum);
           const accounts = await provider.send("eth_requestAccounts", []);
+
+          // Mengambil indeks pertama [0] dari array alamat MetaMask
           const activeAddress = accounts[0];
 
           signer = await provider.getSigner(activeAddress);
           document.getElementById("walletAddress").innerText = activeAddress;
           document.getElementById("connectBtn").innerText = "Terhubung";
 
-          contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+          contract = new ethers.Contract(
+            CONTRACT_ADDRESS,
+            CONTRACT_ABI,
+            signer,
+          );
         } catch (error) {
           console.error(error);
           alert("Gagal menghubungkan wallet.");
@@ -165,7 +171,9 @@
           // Membuat real SHA-256 hash dari data biner berkas
           const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
           const hashArray = Array.from(new Uint8Array(hashBuffer));
-          const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+          const hashHex = hashArray
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join("");
 
           // Menaruh string hash ke form input
           document.getElementById("docHash").value = "0x" + hashHex;
@@ -179,15 +187,17 @@
         const hash = document.getElementById("docHash").value;
         const statusNode = document.getElementById("regStatus");
 
-        if (!hash) return alert("Pilih file terlebih dahulu agar hash terbentuk!");
+        if (!hash)
+          return alert("Pilih file terlebih dahulu agar hash terbentuk!");
 
         try {
           statusNode.innerText = "Memproses transaksi di MetaMask...";
           const tx = await contract.registerDocument(hash, name);
           statusNode.innerText = "Menunggu konfirmasi block...";
           await tx.wait();
-          statusNode.innerText = "Sukses! Dokumen berhasil dicatat di Blockchain.";
-          
+          statusNode.innerText =
+            "Sukses! Dokumen berhasil dicatat di Blockchain.";
+
           // Mengisi kolom otomatis agar meminimalkan human error typo data hash
           document.getElementById("searchHash").value = hash;
           document.getElementById("transferHash").value = hash;
@@ -216,17 +226,21 @@
           `;
         } catch (error) {
           console.error(error);
-          resultNode.innerText = "Error: Dokumen tidak ditemukan atau hash salah.";
+          resultNode.innerText =
+            "Error: Dokumen tidak ditemukan atau hash salah.";
         }
       }
 
       async function transferDocument() {
         if (!contract) return alert("Hubungkan wallet terlebih dahulu!");
         const hash = document.getElementById("transferHash").value.trim();
-        const receiver = document.getElementById("receiverAddress").value.trim();
+        const receiver = document
+          .getElementById("receiverAddress")
+          .value.trim();
         const statusNode = document.getElementById("transferStatus");
 
-        if (!hash || !receiver) return alert("Lengkapi data hash dokumen dan alamat penerima!");
+        if (!hash || !receiver)
+          return alert("Lengkapi data hash dokumen dan alamat penerima!");
 
         try {
           statusNode.innerText = "Memproses transfer di MetaMask...";
@@ -236,7 +250,8 @@
           statusNode.innerText = `Sukses! Kepemilikan berhasil dialihkan ke ${receiver}`;
         } catch (error) {
           console.error(error);
-          statusNode.innerText = "Gagal transfer: " + (error.reason || error.message);
+          statusNode.innerText =
+            "Gagal transfer: " + (error.reason || error.message);
         }
       }
 

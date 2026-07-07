@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content=" 'unsafe-inline' 'unsafe-eval'; connect-src * blob: data:; worker-src blob:;">
+    <title>🔓 Secure Doc Transfer — Receiver (Bob)</title>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#12121a;color:#e0e0e0;display:flex;flex-direction:column;min-height:100vh;}
+        header{background:linear-gradient(135deg,#0f3460,#1a1a2e);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #00ffcc44;flex-wrap:wrap;gap:8px;}
+        header h1{font-size:1.1rem;color:#00ffcc;letter-spacing:.8px;}
+        .nav-link{color:#00ffcc88;font-size:12px;border:1px solid #00ffcc33;padding:4px 10px;border-radius:6px;text-decoration:none;}
+        .nav-link:hover{color:#00ffcc;border-color:#00ffcc88;}
+        .badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+        .badge{background:#00ffcc22;border:1px solid #00ffcc55;padding:3px 10px;border-radius:20px;font-size:11px;color:#00ffcc;}
+        .badge.sim-active{background:#7b2ff733;border-color:#7b2ff7;color:#b57bff;}
+        .main{display:flex;flex:1;}
+        .control{width:40%;background:#1a1a28;border-right:1px solid #2a2a40;padding:16px;overflow-y:auto;max-height:calc(100vh - 60px);}
+        .visual{width:60%;padding:16px;overflow-y:auto;max-height:calc(100vh - 60px);display:flex;flex-direction:column;gap:12px;}
+        .mode-toggle{display:flex;background:#0d0d18;border-radius:8px;padding:4px;gap:4px;margin-bottom:12px;}
+        .mode-toggle button{flex:1;padding:7px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:#555;transition:.2s;}
+        .mode-toggle button.active{background:#1e3a5f;color:#00ffcc;box-shadow:0 0 8px #00ffcc33;}
+        .step-card{background:#22223a;border-radius:10px;border-left:4px solid #333355;padding:12px;margin-bottom:10px;transition:.3s;}
+        .step-card.active{border-left-color:#00ffcc;background:#1e2a38;}
+        .step-card.done{border-left-color:#28a745;background:#1a2a1e;opacity:.82;}
+        .step-title{font-size:.88rem;font-weight:700;color:#aaddff;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+        .step-note{font-size:11px;color:#666;margin-bottom:8px;line-height:1.5;}
+        .sbadge{background:#333;padding:2px 7px;border-radius:10px;font-size:10px;color:#888;margin-left:auto;}
+        .sbadge.done{background:#28a74533;color:#28a745;}
+        .sbadge.active{background:#00ffcc22;color:#00ffcc;}
+        .sbadge.sim{background:#7b2ff733;color:#b57bff;}
+        .sbadge.crypto{background:#ff994433;color:#ff9944;}
+        label{font-size:11px;color:#8888aa;margin-top:5px;display:block;}
+        input,select,textarea{width:100%;padding:7px 10px;margin:3px 0;background:#2a2a40;border:1px solid #3a3a55;color:#e0e0e0;border-radius:5px;font-size:11px;}
+        textarea{resize:vertical;min-height:80px;font-family:monospace;}
+        input[readonly]{background:#1e1e30;color:#777;}
+        input:focus,select:focus,textarea:focus{outline:none;border-color:#00ffcc66;}
+        button{width:100%;padding:8px 12px;margin:6px 0 2px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;transition:.2s;}
+        .btn-b{background:linear-gradient(135deg,#0077ff,#0055cc);color:#fff;}
+        .btn-b:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px);}
+        .btn-d{background:linear-gradient(135deg,#7b2ff7,#5500cc);color:#fff;}
+        .btn-d:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px);}
+        .btn-g{background:linear-gradient(135deg,#11a852,#0d7a3d);color:#fff;}
+        .btn-g:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px);}
+        .btn-o{background:linear-gradient(135deg,#e07b00,#b35f00);color:#fff;}
+        .btn-o:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px);}
+        .btn-sim{background:linear-gradient(135deg,#7b2ff7,#3a00aa);color:#fff;}
+        .btn-sim:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px);}
+        .btn-crypto{background:linear-gradient(135deg,#ff7700,#cc4400);color:#fff;}
+        .btn-crypto:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px);}
+        .btn-log{background:#00ffcc18;border:1px solid #00ffcc44;color:#00ffcc;font-weight:600;font-size:11px;}
+        .btn-log:hover{background:#00ffcc33;}
+        button:disabled{background:#2a2a40!important;color:#444!important;cursor:not-allowed;transform:none!important;filter:none!important;}
+        .status{font-size:11px;margin-top:4px;padding:5px 8px;border-radius:4px;background:#1a1a2e;color:#ffc107;min-height:24px;}
+        .status.ok{color:#28a745;background:#1a2a1e;}
+        .status.err{color:#dc3545;background:#2a1a1e;}
+        .progress-bar{background:#2a2a40;border-radius:10px;height:4px;margin:6px 0;}
+        .progress-fill{background:linear-gradient(90deg,#00ffcc,#007bff);height:100%;border-radius:10px;transition:.6s;width:0%;}
+        .file-drop{border:2px dashed #3a3a55;border-radius:7px;padding:14px;text-align:center;position:relative;transition:.2s;cursor:pointer;display:block;}
+        .file-drop:hover{border-color:#00ffcc66;}
+        .file-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+        .file-drop-lbl{color:#555;font-size:12px;pointer-events:none;}
+        .vcard{background:#1e1e2e;border-radius:10px;padding:13px;border:1px solid #2a2a40;}
+        .vcard h4{font-size:.78rem;color:#00ffcc;margin-bottom:10px;letter-spacing:.8px;text-transform:uppercase;display:flex;align-items:center;}
+        .node-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+        .node{background:#2a2a3e;border:2px solid #3a3a55;border-radius:7px;padding:8px 4px;text-align:center;font-size:10px;transition:.4s;}
+        .node .icon{font-size:1.3rem;display:block;margin-bottom:2px;}
+        .node small{font-size:9px;color:#555;}
+        .node.online{border-color:#28a745;background:#1a2a1e;}
+        .node.online small{color:#28a745;}
+        .node.syncing{border-color:#ffc107;background:#2a2010;animation:pulse .8s infinite alternate;}
+        .node.receiver{border-color:#17a2b8;background:#0a1e22;}
+        .node.receiver small{color:#17a2b8;}
+        .node.sender{border-color:#007bff;background:#0a1022;}
+        .node.sender small{color:#007bff;}
+        @keyframes pulse{from{opacity:.55}to{opacity:1}}
+        .ledger{background:#080810;border-radius:5px;font-family:'Courier New',monospace;font-size:10.5px;max-height:210px;overflow-y:auto;padding:9px;line-height:1.7;}
+        .ledger-placeholder{color:#444;}
+        .ledger-expand-btn{margin-left:auto;background:#00ffcc18;border:1px solid #00ffcc44;color:#00ffcc;padding:2px 7px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:600;width:auto;margin-top:0;}
+        .ledger-expand-btn:hover{background:#00ffcc33;}
+        .chain-wrap{overflow-x:auto;padding:3px 0;}
+        .chain{display:flex;align-items:center;gap:0;min-width:max-content;}
+        .block{background:#1a3a2a;border:1px solid #28a74555;border-radius:6px;min-width:100px;padding:8px;font-size:9px;text-align:center;cursor:pointer;transition:.25s;position:relative;}
+        .block:hover{filter:brightness(1.35);transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,0,0,.6);}
+        .block:hover::after{content:"🔍";position:absolute;top:2px;right:4px;font-size:9px;opacity:.7;}
+        .block.genesis{background:#2a2a1a;border-color:#ffc10755;}
+        .block.deploy{background:#1a1a3a;border-color:#7b2ff755;}
+        .block.register{background:#1a2a3a;border-color:#007bff55;}
+        .block.transfer{background:#2a1a3a;border-color:#e07b0055;}
+        .block.verify{background:#1a2a1e;border-color:#28a74555;}
+        .block.encrypt{background:#2a1a0a;border-color:#ff770055;}
+        .block.keygen{background:#1a1a2e;border-color:#cc88ff55;}
+        .block b{font-size:10px;}
+        .arrow{color:#444;font-size:18px;padding:0 2px;flex-shrink:0;}
+        .ig{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+        .ii{background:#2a2a3e;border-radius:5px;padding:8px;}
+        .ii .lbl{font-size:10px;color:#666;margin-bottom:2px;}
+        .ii .val{font-family:monospace;font-size:10px;color:#00ffcc;word-break:break-all;}
+        .sim-acct{background:#1a1530;border:1px solid #7b2ff744;border-radius:7px;padding:10px;margin-bottom:8px;}
+        .sim-acct-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+        .sim-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+        .sim-avatar.alice{background:#1e3a5f;}
+        .sim-avatar.bob{background:#1a3a2a;}
+        .sim-acct-info{flex:1;}
+        .sim-acct-info small{font-size:10px;color:#555;}
+        .sim-bal{font-size:11px;color:#ffc107;font-weight:bold;margin-left:auto;}
+        .addr-input{font-family:monospace;}
+        /* crypto step highlight */
+        .step-card.crypto-active{border-left-color:#ff9944;background:#2a1a0e;}
+        /* key display box */
+        .key-box{background:#080810;border:1px solid #333355;border-radius:5px;padding:8px;font-family:monospace;font-size:9.5px;color:#888;word-break:break-all;max-height:80px;overflow-y:auto;line-height:1.5;}
+        /* on/off chain indicator */
+        .onchain-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;margin-left:4px;}
+        .onchain-badge.yes{background:#28a74522;color:#28a745;border:1px solid #28a74544;}
+        .onchain-badge.no{background:#dc354522;color:#dc3545;border:1px solid #dc354544;}
+        /* Modal */
+        .modal-overlay{position:fixed;inset:0;background:#000000e0;z-index:2000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+        .modal-overlay.open{display:flex;}
+        .modal-box{background:#14141e;border:1px solid #00ffcc33;border-radius:12px;width:92%;max-width:920px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;}
+        .modal-hdr{padding:13px 18px 10px;border-bottom:1px solid #2a2a40;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+        .modal-hdr-title{font-size:.9rem;font-weight:700;color:#00ffcc;flex:1;}
+        .modal-close{background:#ffffff11;border:1px solid #ffffff22;color:#aaa;border-radius:5px;padding:3px 8px;font-size:13px;cursor:pointer;width:auto;margin:0;transition:.2s;}
+        .modal-close:hover{background:#ffffff22;color:#fff;}
+        .modal-body{overflow-y:auto;flex:1;}
+        .modal-tabs{display:flex;background:#0e0e1a;border-bottom:1px solid #2a2a40;flex-shrink:0;}
+        .modal-tab{flex:1;padding:9px;border:none;background:transparent;color:#555;font-size:12px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;width:auto;margin:0;border-radius:0;}
+        .modal-tab.active{color:#00ffcc;border-bottom-color:#00ffcc;background:#00ffcc08;}
+        .tab-panel{display:none;padding:14px 18px;}
+        .tab-panel.active{display:block;}
+        .ledger-full{font-family:'Courier New',monospace;font-size:11px;line-height:1.8;background:#080810;border-radius:5px;padding:12px;}
+        .fa-section{margin-bottom:20px;}
+        .fa-section-title{font-size:.73rem;font-weight:700;color:#00ffcc;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e2a3a;padding-bottom:5px;margin-bottom:12px;}
+        .pipeline{display:flex;align-items:flex-start;flex-wrap:wrap;gap:0;overflow-x:auto;padding:6px 0 14px;}
+        .pipe-node{display:flex;flex-direction:column;align-items:center;min-width:72px;max-width:90px;}
+        .pipe-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;border:2px solid #333355;background:#1e1e30;}
+        .pipe-icon.done{border-color:#28a745;background:#1a2a1e;box-shadow:0 0 8px #28a74544;}
+        .pipe-icon.pending{border-color:#333355;opacity:.4;}
+        .pipe-label{font-size:9px;text-align:center;margin-top:5px;color:#888;line-height:1.3;}
+        .pipe-label strong{display:block;color:#aaddff;font-size:10px;}
+        .pipe-connector{display:flex;align-items:center;padding-top:12px;flex-shrink:0;}
+        .pipe-connector span{color:#2a4a3a;font-size:20px;}
+        .pipe-connector.done span{color:#28a745;}
+        .hash-chain{display:flex;flex-direction:column;gap:7px;}
+        .hash-block{background:#0e0e18;border:1px solid #1e2a3a;border-radius:7px;padding:10px;}
+        .hash-block-hdr{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+        .hash-block-badge{padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;}
+        .hash-block-badge.genesis{background:#ffc10722;color:#ffc107;}
+        .hash-block-badge.deploy{background:#7b2ff722;color:#b57bff;}
+        .hash-block-badge.register{background:#007bff22;color:#66aaff;}
+        .hash-block-badge.transfer{background:#e07b0022;color:#ffaa44;}
+        .hash-block-badge.verify{background:#28a74522;color:#66dd88;}
+        .hash-block-badge.encrypt{background:#ff770022;color:#ff9944;}
+        .hash-block-badge.keygen{background:#cc88ff22;color:#cc88ff;}
+        .hash-formula{font-family:'Courier New',monospace;font-size:10px;line-height:1.8;color:#888;}
+        .hash-formula .kw{color:#ffc107;}
+        .hash-formula .val{color:#cc88ff;}
+        .hash-formula .res{color:#00ffcc;}
+        .hash-formula .addr{color:#aaddff;}
+        .hash-formula .ok{color:#28a745;}
+        .math-table{width:100%;border-collapse:collapse;font-size:11px;}
+        .math-table th{background:#0e0e18;color:#666;font-weight:600;padding:6px 9px;text-align:left;border-bottom:1px solid #1e2a3a;}
+        .math-table td{padding:6px 9px;border-bottom:1px solid #0e0e18;font-family:monospace;}
+        .math-table tr:last-child td{border-bottom:none;font-weight:700;color:#00ffcc;background:#001010;}
+        .math-table .c1{color:#e0e0e0;}
+        .math-table .c2{color:#ffc107;text-align:right;}
+        .math-table .c4{color:#28a745;text-align:right;}
+        .blk-table{width:100%;border-collapse:collapse;font-size:11px;}
+        .blk-table tr{border-bottom:1px solid #1e1e30;}
+        .blk-table tr:last-child{border-bottom:none;}
+        .blk-table td{padding:7px 9px;vertical-align:top;}
+        .blk-table td:first-child{color:#666;width:36%;white-space:nowrap;}
+        .blk-table td:last-child{font-family:monospace;color:#e0e0e0;word-break:break-all;}
+        .blk-table td .hl{color:#00ffcc;}
+        .blk-table td .hl-addr{color:#aaddff;}
+        .blk-table td .hl-hash{color:#cc88ff;}
+        .blk-table td .hl-ok{color:#28a745;}
+        .blk-section{font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1px;padding:8px 9px 3px;background:#0e0e18;}
+        .block-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-bottom:12px;}
+        .block-badge.genesis{background:#ffc10722;color:#ffc107;border:1px solid #ffc10744;}
+        .block-badge.deploy{background:#7b2ff722;color:#b57bff;border:1px solid #7b2ff744;}
+        .block-badge.register{background:#007bff22;color:#66aaff;border:1px solid #007bff44;}
+        .block-badge.transfer{background:#e07b0022;color:#ffaa44;border:1px solid #e07b0044;}
+        .block-badge.verify{background:#28a74522;color:#66dd88;border:1px solid #28a74544;}
+        .block-badge.encrypt{background:#ff770022;color:#ff9944;border:1px solid #ff770044;}
+        .block-badge.keygen{background:#cc88ff22;color:#cc88ff;border:1px solid #cc88ff44;}
+</style>
+    <script src="./ethers.umd.min.js"></script>
+    <script src="./js/state.js"></script>
+    <script src="./js/simulation.js"></script>
+    <script src="./js/logger.js"></script>
+    <script src="./js/ui.js"></script>
+    <script src="./js/blockchain.js"></script>
+    <script src="./js/crypto-utils.js"></script>
+</head>
+<body>
+<header>
+    <h1>🔓 Secure Document Transfer — <span style="color:#17a2b8;">Penerima (Bob)</span></h1>
+    <div class="badges">
+        <a class="nav-link" href="dashboard.html">← Dashboard Pengirim</a>
+        <span class="badge" id="modeBadge">🎮 Sim Mode</span>
+        <span class="badge" id="networkBadge">🔴 Offline</span>
+        <span class="badge" id="walletBadge">👛 Bob</span>
+    </div>
+</header>
+<div class="main">
+<div class="control">
+    <div class="mode-toggle">
+        <button id="btnSimMode" class="active" onclick="setDecryptMode('sim')">🎮 Simulasi</button>
+        <button id="btnRealMode" onclick="setDecryptMode('real')">🦊 Mode Nyata</button>
+    </div>
+    <div>
+        <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+        <div style="font-size:10px;color:#444;text-align:right;" id="progLabel">Step 0 / 6</div>
+    </div>
+
+    <!-- D1: LOAD PRIVATE KEY -->
+    <div class="step-card active" id="c1">
+      <div class="step-title">🔑 Step 1 — Load RSA Private Key Bob <span class="sbadge crypto" id="b1">AKTIF</span></div>
+      <p class="step-note">Load private key Bob (dari file .pem yang disimpan Alice). <span class="onchain-badge no">OFF-CHAIN</span></p>
+      <label class="file-drop" for="privKeyFile">
+        <input type="file" id="privKeyFile" accept=".pem,.txt" onchange="loadPrivateKey()" />
+        <span class="file-drop-lbl" id="privKeyLbl">📂 Klik untuk load .pem private key</span>
+      </label>
+      <p style="font-size:10px;color:#555;margin-top:4px;text-align:center;">— atau paste PEM langsung —</p>
+      <textarea id="privKeyPaste" placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----" rows="4"></textarea>
+      <button class="btn-crypto" onclick="loadPrivateKeyFromPaste()">🔑 Load dari Paste</button>
+      <div class="status" id="s1">Load RSA private key Bob terlebih dahulu.</div>
+    </div>
+
+    <!-- D2: CONNECT + VERIFY ON-CHAIN -->
+    <div class="step-card" id="c2">
+      <div class="step-title">🌐 Step 2 — Verifikasi Kepemilikan On-Chain <span class="sbadge" id="b2">TERKUNCI</span></div>
+      <p class="step-note">Verifikasi bahwa Bob adalah pemilik sah dokumen di blockchain.</p>
+      <div id="d2Sim">
+        <label for="bobAddrInput">Alamat Bob:</label>
+        <input type="text" id="bobAddrInput" value="0x05e2f072A1Ee382Be64c31F4F9543309748c0677" class="addr-input" />
+        <label for="contractAddrInput">Alamat Kontrak:</label>
+        <input type="text" id="contractAddrInput" placeholder="0x... (dari Alice)" class="addr-input" />
+        <label for="docHashVerify">SHA-256 Dokumen (dari metadata JSON Alice):</label>
+        <input type="text" id="docHashVerify" placeholder="0x..." style="font-family:monospace;font-size:10px;" />
+      </div>
+      <button class="btn-b" id="btnVerify" onclick="verifyOwnership()" disabled>🔍 Verifikasi On-Chain</button>
+      <div class="status" id="s2">Tunggu private key.</div>
+    </div>
+
+    <!-- D3: LOAD METADATA JSON -->
+    <div class="step-card" id="c3">
+      <div class="step-title">📋 Step 3 — Load Metadata JSON <span class="sbadge" id="b3">TERKUNCI</span></div>
+      <p class="step-note">Load file metadata JSON yang diberikan Alice (berisi hash on-chain untuk verifikasi).</p>
+      <label class="file-drop" for="metaFile">
+        <input type="file" id="metaFile" accept=".json" onchange="loadMetadata()" disabled />
+        <span class="file-drop-lbl" id="metaFileLbl">📂 Klik untuk load *-metadata.json dari Alice</span>
+      </label>
+      <div id="metaDisplay" style="display:none;margin-top:8px;">
+        <div class="ig">
+          <div class="ii"><div class="lbl">Nama File</div><div class="val" id="mDocName">-</div></div>
+          <div class="ii"><div class="lbl">Algoritma</div><div class="val" id="mAlgo">-</div></div>
+          <div class="ii"><div class="lbl">SHA-256 (Original)</div><div class="val" id="mDocHash" style="font-size:9px;">-</div></div>
+          <div class="ii"><div class="lbl">SHA-256 (Enc File)</div><div class="val" id="mEncHash" style="font-size:9px;">-</div></div>
+        </div>
+      </div>
+      <div class="status" id="s3">Tunggu verifikasi on-chain.</div>
+    </div>
+
+    <!-- D4: LOAD .enc FILE -->
+    <div class="step-card" id="c4">
+      <div class="step-title">📂 Step 4 — Load File Terenkripsi (.enc) <span class="sbadge" id="b4">TERKUNCI</span></div>
+      <p class="step-note">Load file .enc yang diberikan Alice.</p>
+      <label class="file-drop" for="encFileInput">
+        <input type="file" id="encFileInput" accept=".enc,*" onchange="loadEncFile()" disabled />
+        <span class="file-drop-lbl" id="encFileLbl">📂 Klik untuk load .enc file dari Alice</span>
+      </label>
+      <div class="status" id="s4">Tunggu metadata JSON.</div>
+    </div>
+
+    <!-- D5: DECRYPT -->
+    <div class="step-card" id="c5">
+      <div class="step-title">🔓 Step 5 — Dekripsi Dokumen <span class="sbadge crypto" id="b5">TERKUNCI</span></div>
+      <p class="step-note">RSA-OAEP unwrap AES key → AES-256-GCM decrypt file.</p>
+      <button class="btn-crypto" id="btnDecrypt" onclick="decryptDocumentStep()" disabled>🔓 Dekripsi Dokumen</button>
+      <div class="status" id="s5">Tunggu .enc file.</div>
+    </div>
+
+    <!-- D6: VERIFY + SAVE -->
+    <div class="step-card" id="c6">
+      <div class="step-title">✅ Step 6 — Verifikasi Integritas &amp; Simpan <span class="sbadge" id="b6">TERKUNCI</span></div>
+      <p class="step-note">Verifikasi SHA-256 hasil dekripsi cocok dengan hash on-chain.</p>
+      <div id="verifyIntegrity" style="display:none;margin-bottom:8px;">
+        <div class="ig">
+          <div class="ii"><div class="lbl">SHA-256 (On-Chain)</div><div class="val" id="hashOnChain" style="font-size:9px;">-</div></div>
+          <div class="ii"><div class="lbl">SHA-256 (Decrypted)</div><div class="val" id="hashDecrypted" style="font-size:9px;">-</div></div>
+          <div class="ii" style="grid-column:1/-1;"><div class="lbl">Status Integritas</div><div class="val" id="integrityStatus">-</div></div>
+        </div>
+      </div>
+      <button class="btn-g" id="btnSaveDecrypted" onclick="saveDecryptedFile()" disabled>💾 Download File Hasil Dekripsi</button>
+      <div class="status" id="s6">Tunggu dekripsi.</div>
+    </div>
+
+</div><!-- end control -->
+<div class="visual">
+    <div class="vcard">
+        <h4>🔐 Sesi Dekripsi</h4>
+        <div class="ig">
+            <div class="ii"><div class="lbl">Status</div><div class="val" id="decStat" style="color:#dc3545;">Menunggu inisialisasi</div></div>
+            <div class="ii"><div class="lbl">Pemilik Sah (On-Chain)</div><div class="val" id="decOwner" style="font-size:9px;">-</div></div>
+            <div class="ii"><div class="lbl">Nama File</div><div class="val" id="decDocName">-</div></div>
+            <div class="ii"><div class="lbl">Algoritma</div><div class="val" id="decAlgo">-</div></div>
+            <div class="ii"><div class="lbl">SHA-256 On-Chain</div><div class="val" id="decDocHash" style="font-size:9px;">-</div></div>
+            <div class="ii"><div class="lbl">Integritas</div><div class="val" id="decIntegrity">-</div></div>
+        </div>
+    </div>
+    <div class="vcard">
+        <h4>🌐 P2P Network</h4>
+        <div class="node-grid" id="nodeGrid">
+            <div class="node" id="n0"><span class="icon">🏛️</span>Genesis<br><small>Offline</small></div>
+            <div class="node" id="n1"><span class="icon">💻</span>Validator 1<br><small>Offline</small></div>
+            <div class="node" id="n2"><span class="icon">💻</span>Validator 2<br><small>Offline</small></div>
+            <div class="node" id="n3"><span class="icon">👨</span>Bob<br><small>Offline</small></div>
+        </div>
+    </div>
+    <div class="vcard">
+        <h4>📖 Distributed Ledger
+            <button class="ledger-expand-btn" onclick="openLedgerModal()">⛶ Fullscreen</button>
+            <button class="ledger-expand-btn" onclick="exportLogs()" style="margin-left:4px;">💾 Export Log</button>
+        </h4>
+        <div class="ledger" id="ledger"><span class="ledger-placeholder">Sistem belum aktif...</span></div>
+    </div>
+    <div class="vcard">
+        <h4>⛓️ Block Explorer <span style="font-size:10px;color:#555;margin-left:auto;font-weight:normal;text-transform:none;">Klik blok untuk detail</span></h4>
+        <div class="chain-wrap"><div class="chain" id="chain">
+            <div class="block genesis" onclick="openBlockModal(0)">
+                <div style="font-size:1.2rem;">🏛️</div><b>Block #0</b><br>
+                <span style="color:#ffc107;">GENESIS</span>
+            </div>
+        </div></div>
+        <div style="margin-top:6px;font-size:11px;color:#555;">
+            Blok: <span id="blockCount" style="color:#00ffcc;font-weight:bold;">1</span> &nbsp;|&nbsp;
+            Tx: <span id="txCount" style="color:#ffc107;font-weight:bold;">0</span>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- MODAL: LEDGER -->
+<div class="modal-overlay" id="ledgerModal">
+    <div class="modal-box" style="max-width:960px;">
+        <div class="modal-hdr">
+            <span>📖</span><span class="modal-hdr-title">Distributed Ledger &amp; Flow Analysis</span>
+            <button class="modal-close" onclick="closeLedgerModal()">✕ Tutup</button>
+        </div>
+        <div class="modal-tabs">
+            <button class="modal-tab active" id="tabBtnLog" onclick="showTab('log')">📋 Log Aktivitas</button>
+            <button class="modal-tab" id="tabBtnFlow" onclick="showTab('flow')">📊 Analisis Flow</button>
+        </div>
+        <div class="modal-body">
+            <div class="tab-panel active" id="tabLog"><div class="ledger-full" id="ledgerFull"></div></div>
+            <div class="tab-panel" id="tabFlow"><div id="flowAnalysis"></div></div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: BLOCK DETAIL -->
+<div class="modal-overlay" id="blockModal">
+    <div class="modal-box">
+        <div class="modal-hdr">
+            <span id="blockModalIcon">📦</span>
+            <span class="modal-hdr-title" id="blockModalTitle">Block Detail</span>
+            <button class="modal-close" onclick="closeBlockModal()">✕ Tutup</button>
+        </div>
+        <div class="modal-body" style="padding:14px 18px;" id="blockModalBody"></div>
+    </div>
+</div>
+
+<script>
+// Receiver state
+let decryptMetadata  = null;  // loaded from JSON
+let encFileBuffer    = null;  // loaded .enc file
+let decryptedBuffer  = null;  // result after decrypt
+let rsaPrivateKeyObj = null;  // CryptoKey
+
+function setDecryptMode(mode) {
+    APP.SIM_MODE = (mode === 'sim');
+    document.getElementById('btnSimMode').className = APP.SIM_MODE ? 'active' : '';
+    document.getElementById('btnRealMode').className = APP.SIM_MODE ? '' : 'active';
+    document.getElementById('modeBadge').textContent = APP.SIM_MODE ? '🎮 Sim Mode' : '🦊 Real Mode';
+    document.getElementById('modeBadge').className = APP.SIM_MODE ? 'badge sim-active' : 'badge';
+    log('Mode: ' + (APP.SIM_MODE ? 'Simulasi' : 'Nyata (MetaMask)'), 'sim', 'SETUP');
+}
+
+// ── D1: Load Private Key ─────────────────────────────────────────────────────
+async function loadPrivateKey() {
+    const file = document.getElementById('privKeyFile').files[0]; if (!file) return;
+    document.getElementById('privKeyLbl').textContent = '📄 ' + file.name;
+    const text = await file.text();
+    await _importAndActivatePrivKey(text);
+}
+async function loadPrivateKeyFromPaste() {
+    const text = document.getElementById('privKeyPaste').value.trim();
+    if (!text) { setStat(1, 'Paste private key terlebih dahulu.', 'err'); return; }
+    await _importAndActivatePrivKey(text);
+}
+async function _importAndActivatePrivKey(pem) {
+    setStat(1, 'Mengimport RSA private key...', '');
+    try {
+        rsaPrivateKeyObj = await importPrivateKeyPEM(pem);
+        APP.session.rsaPrivateKeyPem = pem;
+        log('✅ RSA-4096 private key berhasil diload.', 'ok', 'KEYGEN');
+        log('Key akan digunakan untuk unwrap AES key (off-chain only).', 'info', 'KEYGEN');
+        setDone(1); setActive(2);
+        setStat(1, '✅ Private key valid dan siap digunakan.', 'ok');
+        document.getElementById('btnVerify').disabled = false;
+        // Activate nodes
+        bringNodesOnline();
+        const n3 = document.getElementById('n3');
+        n3.innerHTML = '<span class="icon">👨</span>Bob<br><small>Online ✓</small>'; n3.className = 'node receiver';
+    } catch(e) {
+        setStat(1, 'Private key tidak valid: ' + e.message, 'err');
+        log('ERROR import private key: ' + e.message, 'err', 'KEYGEN');
+    }
+}
+
+// ── D2: Verify On-Chain ──────────────────────────────────────────────────────
+async function verifyOwnership() {
+    const bobAddr      = document.getElementById('bobAddrInput').value.trim();
+    const contractAddr = document.getElementById('contractAddrInput').value.trim();
+    const docHash      = document.getElementById('docHashVerify').value.trim();
+    if (!ethers.isAddress(bobAddr))      { setStat(2,'Alamat Bob tidak valid!','err'); return; }
+    if (!contractAddr && !APP.SIM_MODE)  { setStat(2,'Masukkan alamat kontrak!','err'); return; }
+    if (!docHash)                        { setStat(2,'Masukkan SHA-256 dokumen!','err'); return; }
+
+    APP.bobAddress = bobAddr;
+    APP.CONTRACT_ADDRESS = contractAddr || null;
+    document.getElementById('walletBadge').textContent = '👨 Bob: ' + bobAddr.substring(0,8) + '...';
+    setStat(2, 'Memverifikasi kepemilikan...', '');
+    log('Verifikasi kepemilikan on-chain...', 'warn', 'VERIFY');
+
+    try {
+        let meta;
+        if (APP.SIM_MODE) {
+            await fakeDelay(800);
+            log('[SIM] Membaca from sim ledger...', 'sim', 'VERIFY');
+            // In sim mode without real ledger, we accept the docHash and auto-pass
+            meta = simLedger.get(docHash) || {
+                docName: 'Document (Sim)', owner: bobAddr,
+                timestamp: Math.floor(Date.now()/1000),
+                encryptedFileHash: '-', encryptedKeyHash: '-', ivHash: '-',
+                algorithm: CRYPTO_ALGO,
+            };
+        } else {
+            if (!APP.provider) {
+                APP.provider = new ethers.BrowserProvider(window.ethereum, 'any');
+                await APP.provider.send('eth_requestAccounts', []);
+                APP.signer = await APP.provider.getSigner();
+            }
+            APP.contract = new ethers.Contract(APP.CONTRACT_ADDRESS, CONTRACT_ABI, APP.provider);
+            meta = await getDocumentMeta(docHash);
+        }
+
+        const isOwner = meta.owner.toLowerCase() === bobAddr.toLowerCase();
+        document.getElementById('decOwner').textContent  = meta.owner;
+        document.getElementById('decDocName').textContent = meta.docName;
+        document.getElementById('decAlgo').textContent    = meta.algorithm;
+        document.getElementById('decDocHash').textContent = docHash;
+        document.getElementById('decStat').textContent   = isOwner ? '✅ Bob adalah pemilik sah' : '❌ Bob BUKAN pemilik sah';
+        document.getElementById('decStat').style.color   = isOwner ? '#28a745' : '#dc3545';
+
+        log('Pemilik on-chain : ' + meta.owner, 'addr', 'VERIFY');
+        log('Bob             : ' + bobAddr,   'addr', 'VERIFY');
+        log('Status          : ' + (isOwner ? '✅ COCOK — Bob adalah pemilik sah' : '❌ TIDAK COCOK'), isOwner?'ok':'err', 'VERIFY');
+
+        setDone(2); setActive(3);
+        setStat(2, isOwner ? '✅ Bob adalah pemilik sah dokumen.' : '⚠️ Bob bukan pemilik — lanjut dengan hati-hati.', isOwner?'ok':'');
+        document.getElementById('metaFile').disabled = false;
+
+        addBlock('VERIFY', 'Ownership', isOwner?'✓ Owner':'⚠ Check', {
+            txHash: fakeTxHash(), blockNum: nextSimBlock(), gasUsed: '0',
+            docHash, owner: meta.owner,
+        });
+    } catch(e) {
+        setStat(2, 'Gagal verifikasi: ' + (e.reason||e.message), 'err');
+        log('ERROR: ' + (e.reason||e.message), 'err', 'VERIFY');
+    }
+}
+
+// ── D3: Load Metadata JSON ───────────────────────────────────────────────────
+async function loadMetadata() {
+    const file = document.getElementById('metaFile').files[0]; if (!file) return;
+    document.getElementById('metaFileLbl').textContent = '📋 ' + file.name;
+    try {
+        decryptMetadata = JSON.parse(await file.text());
+        document.getElementById('mDocName').textContent = decryptMetadata.docName || '-';
+        document.getElementById('mAlgo').textContent    = decryptMetadata.algorithm || '-';
+        document.getElementById('mDocHash').textContent = decryptMetadata.docHash || '-';
+        document.getElementById('mEncHash').textContent = decryptMetadata.encFileHash || '-';
+        document.getElementById('metaDisplay').style.display = 'block';
+        document.getElementById('hashOnChain').textContent   = decryptMetadata.docHash || '-';
+
+        log('✅ Metadata JSON loaded: ' + file.name, 'ok', 'SETUP');
+        log('SHA-256 (original) : ' + (decryptMetadata.docHash||'-'), 'hash', 'SETUP');
+        log('SHA-256 (enc file) : ' + (decryptMetadata.encFileHash||'-'), 'hash', 'SETUP');
+
+        setDone(3); setActive(4);
+        setStat(3, '✅ Metadata JSON loaded: ' + file.name, 'ok');
+        document.getElementById('encFileInput').disabled = false;
+    } catch(e) {
+        setStat(3, 'Gagal parse JSON: ' + e.message, 'err');
+    }
+}
+
+// ── D4: Load .enc File ───────────────────────────────────────────────────────
+async function loadEncFile() {
+    const file = document.getElementById('encFileInput').files[0]; if (!file) return;
+    document.getElementById('encFileLbl').textContent = '📄 ' + file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)';
+    encFileBuffer = await file.arrayBuffer();
+
+    // Verify enc file hash
+    const actualEncHash = await sha256Buffer(encFileBuffer);
+    const expectedEncHash = decryptMetadata ? decryptMetadata.encFileHash : null;
+    const match = expectedEncHash && (actualEncHash.toLowerCase() === expectedEncHash.toLowerCase());
+
+    log('SHA-256 (.enc file)  : ' + actualEncHash, 'hash', 'SETUP');
+    log('SHA-256 (expected)   : ' + (expectedEncHash||'N/A'), 'hash', 'SETUP');
+    log('Integritas .enc file : ' + (match?'✅ COCOK':'⚠️ TIDAK COCOK'), match?'ok':'warn', 'SETUP');
+
+    setDone(4); setActive(5);
+    setStat(4, (match?'✅':'⚠️') + ' .enc file loaded. Hash ' + (match?'valid.':'tidak cocok metadata.'), match?'ok':'');
+    document.getElementById('btnDecrypt').disabled = false;
+    setStat(5, 'Siap dekripsi.', 'ok');
+}
+
+// ── D5: Decrypt ──────────────────────────────────────────────────────────────
+async function decryptDocumentStep() {
+    if (!rsaPrivateKeyObj) { setStat(5,'Private key belum diload!','err'); return; }
+    if (!encFileBuffer)    { setStat(5,'.enc file belum diload!','err'); return; }
+    const btn = document.getElementById('btnDecrypt'); btn.disabled = true;
+    btn.textContent = '⏳ Dekripsi... (RSA-OAEP unwrap + AES-GCM decrypt)';
+    setStat(5, 'Dekripsi sedang berjalan...', '');
+
+    log('=== PROSES DEKRIPSI ===', 'crypto', 'DECRYPT');
+    log('1. Parse .enc file → wrappedKey + IV + encryptedData...', 'crypto', 'DECRYPT');
+    await fakeDelay(100);
+    log('2. RSA-OAEP-4096 unwrap AES key menggunakan Bob.privateKey...', 'crypto', 'DECRYPT');
+    await fakeDelay(200);
+    log('3. AES-256-GCM decrypt file data...', 'crypto', 'DECRYPT');
+
+    try {
+        const t0 = performance.now();
+        const { decrypted, restoredHash } = await decryptDocument(encFileBuffer, rsaPrivateKeyObj);
+        const elapsed = ((performance.now() - t0) / 1000).toFixed(3);
+        decryptedBuffer = decrypted;
+
+        const expectedHash = decryptMetadata ? decryptMetadata.docHash : null;
+        const hashMatch = expectedHash && (restoredHash.toLowerCase() === expectedHash.toLowerCase());
+
+        document.getElementById('hashDecrypted').textContent  = restoredHash;
+        document.getElementById('hashOnChain').textContent    = expectedHash || '-';
+        document.getElementById('integrityStatus').textContent = hashMatch
+            ? '✅ COCOK — Dokumen identik dengan aslinya'
+            : '❌ TIDAK COCOK — Dokumen mungkin rusak atau dimodifikasi';
+        document.getElementById('integrityStatus').style.color = hashMatch ? '#28a745' : '#dc3545';
+        document.getElementById('verifyIntegrity').style.display = 'block';
+        document.getElementById('decIntegrity').textContent = hashMatch ? '✅ Valid' : '❌ Gagal';
+        document.getElementById('decIntegrity').style.color = hashMatch ? '#28a745' : '#dc3545';
+
+        log('✅ Dekripsi selesai! (' + elapsed + 's)', 'ok', 'DECRYPT');
+        log('SHA-256 (decrypted) : ' + restoredHash, 'hash', 'DECRYPT');
+        log('SHA-256 (on-chain)  : ' + (expectedHash||'-'), 'hash', 'DECRYPT');
+        log('Integritas          : ' + (hashMatch ? '✅ VALID — dokumen identik' : '❌ GAGAL'), hashMatch?'ok':'err', 'DECRYPT');
+
+        setDone(5); setActive(6);
+        setStat(5, '✅ Dekripsi berhasil (' + elapsed + 's). Integritas: ' + (hashMatch?'VALID':'GAGAL'), hashMatch?'ok':'err');
+        document.getElementById('btnSaveDecrypted').disabled = false;
+
+        addBlock('VERIFY', 'Decrypt+Verify', hashMatch?'✓ Hash':'✗ Hash', {
+            txHash: fakeTxHash(), blockNum: nextSimBlock(), gasUsed: '0',
+            docHash: restoredHash, owner: APP.bobAddress,
+        });
+    } catch(e) {
+        setStat(5, 'Gagal dekripsi: ' + e.message, 'err');
+        log('ERROR dekripsi: ' + e.message, 'err', 'DECRYPT');
+        log('Kemungkinan: private key salah, atau file .enc rusak/tidak matching.', 'warn', 'DECRYPT');
+    }
+    btn.disabled = false; btn.textContent = '🔓 Dekripsi Dokumen';
+}
+
+// ── D6: Save Decrypted ───────────────────────────────────────────────────────
+async function saveDecryptedFile() {
+    if (!decryptedBuffer) { setStat(6,'Belum ada hasil dekripsi!','err'); return; }
+    const name = (decryptMetadata ? decryptMetadata.docName : 'decrypted-document') || 'decrypted-document';
+    const blob = new Blob([decryptedBuffer], { type: 'application/octet-stream' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'DECRYPTED-' + name; a.click();
+    log('💾 Dokumen terdekripsi disimpan: DECRYPTED-' + name, 'ok', 'DECRYPT');
+    log('Alur dekripsi selesai. Dokumen asli berhasil dipulihkan.', 'ok', 'DECRYPT');
+    setDone(6);
+    setStat(6, '✅ Dokumen asli berhasil didekripsi dan disimpan!', 'ok');
+    document.getElementById('decStat').textContent = '✅ Selesai — Dokumen berhasil dipulihkan Bob';
+    document.getElementById('decStat').style.color = '#28a745';
+}
+</script>
+</body>
+</html>
